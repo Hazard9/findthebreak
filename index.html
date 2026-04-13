@@ -176,7 +176,7 @@
   <div class="iw" id="inputPhase">
     <div class="ilabel">// PASTE YOUR CONTENT TO BEGIN</div>
     <div class="ibox" id="ibox">
-      <textarea id="contentInput" placeholder="Paste your post, email, caption, or hook here...&#10;&#10;The system will find the exact moment readers stop."></textarea>
+      <textarea id="contentInput" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Paste your post, email, caption, or hook here...&#10;&#10;The system will find the exact moment readers stop."></textarea>
       <div class="iftr">
         <span class="icount" id="charCount">0 chars</span>
         <div class="iact">
@@ -336,8 +336,16 @@ function updateCount() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('contentInput').addEventListener('input', updateCount);
-  document.getElementById('contentInput').addEventListener('keydown', function(e) {
+  var ta = document.getElementById('contentInput');
+  // Poll every 300ms as fallback for mobile paste/autofill
+  setInterval(function() {
+    var v = ta.value;
+    document.getElementById('charCount').textContent = v.length + ' chars';
+  }, 300);
+  ta.addEventListener('input', updateCount);
+  ta.addEventListener('change', updateCount);
+  ta.addEventListener('keyup', updateCount);
+  ta.addEventListener('keydown', function(e) {
     if (e.ctrlKey && e.key === 'Enter') runScan();
   });
   document.getElementById('emailInput').addEventListener('keydown', function(e) {
@@ -358,15 +366,5 @@ function addTermLine(text, bright, prog) {
 
   if (prog !== undefined) {
     const pw = document.createElement('div');
-    pw.className = 'tprog';
-    const pf = document.createElement('div');
-    pf.className = 'tprog-f';
-    pw.appendChild(pf);
-    body.appendChild(pw);
-    requestAnimationFrame(() => setTimeout(() => { pf.style.width = prog + '%'; }, 40));
-  }
-  body.scrollTop = body.scrollHeight;
-}
-
-function animateScore(elId, target, onDone) {
-  con
+    pw.className =
+          
