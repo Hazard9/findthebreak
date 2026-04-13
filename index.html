@@ -335,12 +335,14 @@ function updateCount() {
   document.getElementById('charCount').textContent = v.length + ' chars';
 }
 
-document.getElementById('contentInput').addEventListener('input', updateCount);
-document.getElementById('contentInput').addEventListener('keydown', e => {
-  if (e.ctrlKey && e.key === 'Enter') runScan();
-});
-document.getElementById('emailInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') submitEmail();
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('contentInput').addEventListener('input', updateCount);
+  document.getElementById('contentInput').addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'Enter') runScan();
+  });
+  document.getElementById('emailInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') submitEmail();
+  });
 });
 
 function show(id) { document.getElementById(id).classList.remove('hidden'); }
@@ -367,8 +369,4 @@ function addTermLine(text, bright, prog) {
 }
 
 function animateScore(elId, target, onDone) {
-  const el = document.getElementById(elId);
-  let cur = 0;
-  const iv = setInterval(() => {
-    
-
+  con
