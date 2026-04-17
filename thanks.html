@@ -1,1 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DOD System — Breakdown Sent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#050608;--surface:#0a0c0f;--border:#1a1f28;--ba:#2a3545;
+      --text:#c8cdd6;--dim:#4a5568;--accent:#e8f0fe;
+      --red:#ff3333;--red-dim:rgba(255,51,51,.08);
+      --amber:#ffb700;--amber-dim:rgba(255,183,0,.08);
+      --green:#00e676;--sb:#4a90d9;--sb-dim:rgba(74,144,217,.08);
+      --mono:'Share Tech Mono',monospace;--display:'Bebas Neue',sans-serif;--body:'Rajdhani',sans-serif;
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;overflow-x:hidden;display:flex;flex-direction:column}
+    body::after{content:'';position:fixed;top:-100%;left:0;width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(74,144,217,.18),transparent);animation:scan 16s linear infinite;pointer-events:none;z-index:999}
+    @keyframes scan{0%{top:-1px}100%{top:100%}}
 
+    .hdr{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .hdr-id{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.12em}
+    .hdr-t{font-family:var(--display);font-size:20px;letter-spacing:.18em;color:var(--accent)}
+    .hdr-status{font-family:var(--mono);font-size:9px;color:var(--green);letter-spacing:.14em;display:flex;align-items:center;gap:7px}
+    .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
+
+    .wrap{max-width:640px;margin:0 auto;padding:0 20px;flex:1;display:flex;flex-direction:column;justify-content:center}
+
+    .main{padding:60px 0 40px;text-align:center}
+
+    .status-line{font-family:var(--mono);font-size:9px;letter-spacing:.22em;color:var(--green);margin-bottom:24px;display:flex;align-items:center;justify-content:center;gap:10px;opacity:0;animation:fadeUp .4s ease .1s forwards}
+    .status-bar{width:32px;height:1px;background:var(--green)}
+
+    .headline{font-family:var(--display);font-size:clamp(52px,10vw,96px);letter-spacing:.04em;line-height:.9;color:var(--accent);margin-bottom:10px;opacity:0;animation:fadeUp .5s ease .2s forwards}
+    .headline .r{color:var(--red)}
+
+    .div{width:42px;height:1px;background:var(--ba);margin:24px auto;opacity:0;animation:fadeUp .4s ease .3s forwards}
+
+    .inbox-block{background:var(--surface);border:1px solid var(--ba);padding:22px 24px;margin-bottom:18px;text-align:left;opacity:0;animation:fadeUp .5s ease .4s forwards}
+    .inbox-label{font-family:var(--mono);font-size:8px;letter-spacing:.22em;color:var(--dim);margin-bottom:10px}
+    .inbox-text{font-family:var(--mono);font-size:11px;color:var(--text);line-height:1.85;letter-spacing:.05em}
+    .inbox-text strong{color:var(--accent)}
+
+    .structural-block{background:rgba(255,51,51,.05);border:1px solid rgba(255,51,51,.2);border-left:3px solid var(--red);padding:16px 18px;margin-bottom:18px;text-align:left;opacity:0;animation:fadeUp .5s ease .5s forwards}
+    .structural-label{font-family:var(--mono);font-size:8px;letter-spacing:.22em;color:var(--red);margin-bottom:8px}
+    .structural-text{font-family:var(--mono);font-size:11px;color:var(--text);line-height:1.8;letter-spacing:.05em}
+    .structural-text .key{color:var(--red)}
+
+    .action-line{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim);margin-bottom:6px;opacity:0;animation:fadeUp .4s ease .65s forwards}
+
+    .open-btn{display:block;width:100%;background:var(--red);border:none;color:#fff;font-family:var(--display);font-size:22px;letter-spacing:.18em;padding:16px 24px;cursor:pointer;transition:background .2s;margin-bottom:10px;text-align:center;opacity:0;animation:fadeUp .5s ease .7s forwards}
+    .open-btn:hover{background:#cc2222}
+
+    .spam-note{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:.09em;text-align:center;line-height:1.7;opacity:0;animation:fadeUp .4s ease .85s forwards}
+    .spam-note span{color:var(--amber)}
+
+    .tension-block{background:var(--surface);border:1px solid var(--border);padding:16px 18px;margin-top:22px;text-align:left;opacity:0;animation:fadeUp .5s ease .95s forwards}
+    .tension-label{font-family:var(--mono);font-size:8px;letter-spacing:.2em;color:var(--dim);margin-bottom:8px}
+    .tension-text{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.06em;line-height:1.8}
+    .tension-text strong{color:var(--text)}
+
+    .footer{border-top:1px solid var(--border);padding:15px 20px;display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:.1em}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .dot{animation:pulse 2s ease-in-out infinite}
+  </style>
+</head>
+<body>
+
+<header class="hdr">
+  <span class="hdr-id">DOD-SYSTEM / BUILD 6.0 / SENTENCE FORENSICS</span>
+  <span class="hdr-t">DOD SYSTEM</span>
+  <span class="hdr-status"><span class="dot"></span>ACTIVE</span>
+</header>
+
+<div class="wrap">
+  <div class="main">
+
+    <div class="status-line">
+      <span class="status-bar"></span>
+      TRANSMISSION CONFIRMED
+      <span class="status-bar"></span>
+    </div>
+
+    <h1 class="headline">CHECK YOUR<br><span class="r">INBOX.</span></h1>
+
+    <div class="div"></div>
+
+    <div class="inbox-block">
+      <div class="inbox-label">// WHAT WAS SENT</div>
+      <div class="inbox-text">
+        I sent you the full breakdown — <strong>the exact sentence</strong>, why it's breaking there, and what's happening underneath it.
+      </div>
+    </div>
+
+    <div class="structural-block">
+      <div class="structural-label">// THE DIAGNOSIS</div>
+      <div class="structural-text">
+        most people think this is a writing problem<br><br>
+        it's not — it's <span class="key">structural</span>
+      </div>
+    </div>
+
+    <p class="action-line">// OPEN IT NOW WHILE THE SCAN IS STILL FRESH</p>
+
+    <a href="mailto:" class="open-btn">OPEN YOUR EMAIL</a>
+
+    <p class="spam-note">don't see it? check <span>promotions or spam</span> — it's worth finding</p>
+
+    <div class="tension-block">
+      <div class="tension-label">// ONE MORE THING</div>
+      <div class="tension-text">
+        the breakdown will hit different if your <strong>last post is still in your head</strong><br><br>
+        it'll make more sense that way
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <span>DOD SYSTEM — DROP-OFF DETECTION</span>
+  <span>MATTENGLEHART.COM</span>
+  <span>BUILD 6.0 — SENTENCE FORENSIC ENGINE</span>
+</footer>
+
+</body>
+</html>
