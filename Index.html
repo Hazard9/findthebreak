@@ -1283,28 +1283,17 @@ function submitEmail(){
     setTimeout(function(){
       const emailVal = document.querySelector('.email-field').value.trim();
 if(!emailVal){return;}
-fetch('https://app.convertkit.com/forms/293a33d4ec/subscriptions',{
-  method:'POST',
-  headers:{'Content-Type':'application/x-www-form-urlencoded'},
-  body:'email_address='+encodeURIComponent(emailVal)
-}).then(()=>{
+fetch("https://app.convertkit.com/forms/293a33d4ec/subscriptions",{
+  method:"POST",
+  headers:{"Content-Type":"application/x-www-form-urlencoded"},
+  body:params.toString()
+})
+.then(function(){
   window.location.href='/thanks';
-}).catch(()=>{
+})
+.catch(function(){
   window.location.href='/thanks';
 });
-      btn.disabled=false;
-      btn.textContent="SEND ME THE FULL CORRECTION";
-    },400);
-  })
-  .catch(function(){
-    // Network error — still redirect, never block the buyer
-    btn.textContent="REDIRECTING...";
-    setTimeout(function(){
-      window.open("https://mattenglehart.gumroad.com/l/bdrunx","_blank");
-      btn.disabled=false;
-      btn.textContent="SEND ME THE FULL CORRECTION";
-    },400);
-  });
 }
 
 // ── RESET ──────────────────────────────────────────────────────────────
