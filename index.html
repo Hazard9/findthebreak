@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DOD System — Drop-Off Detection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --bg:#050608;--surface:#0a0c0f;--border:#1a1f28;--ba:#2a3545;
+    --text:#c8cdd6;--dim:#4a5568;--accent:#e8f0fe;
+    --red:#ff3333;--rd:rgba(255,51,51,0.1);
+    --amber:#ffb700;--ad:rgba(255,183,0,0.1);
+    --green:#00e676;--sb:#4a90d9;
+    --mono:'Share Tech Mono',monospace;
+    --display:'Bebas Neue',sans-serif;
+    --body:'Rajdhani',sans-serif;
+  }
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg);color:var(--text);font-family:var(--body);overflow-x:hidden;min-height:100vh;}
+  body::after{content:'';position:fixed;top:-100%;left:0;width:100%;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(74,144,217,.18),transparent);
+    animation:sl 16s linear infinite;pointer-events:none;z-index:999;}
+  @keyframes sl{0%{top:-1px}100%{top:100%}}
+
+  .w{max-width:780px;margin:0 auto;padding:0 20px;}
+
+  .hdr{border-bottom:1px solid var(--border);padding:11px 20px;display:flex;
+    align-items:center;justify-content:space-between;background:var(--surface);
+    position:sticky;top:0;z-index:100;}
+  .hdr-id{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.12em;}
+  .hdr-t{font-family:var(--display);font-size:19px;letter-spacing:.2em;color:var(--accent);}
+  .hdr-s{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9px;color:var(--green);letter-spacing:.1em;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pu 2s ease-in-out infinite;}
+  @keyframes pu{0%,100%{opacity:1;box-shadow:0 0 4px var(--green)}50%{opacity:.4;box-shadow:none}}
+
+  .hero{padding:56px 20px 40px;text-align:center;}
+  .hero-eye{font-family:var(--mono);font-size:9px;letter-spacing:.24em;color:var(--dim);margin-bottom:20px;display:block;}
+  .hero h1{font-family:var(--display);font-size:clamp(50px,9.5vw,94px);letter-spacing:.06em;color:var(--accent);line-height:.92;}
+  .hero h1 .r{color:var(--red);}
+  .hdiv{width:40px;height:1px;background:var(--ba);margin:24px auto;}
+  .hero-sub{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.09em;line-height:1.9;max-width:480px;margin:0 auto 44px;}
+
+  .iw{margin-bottom:48px;}
+  .ilabel{font-family:var(--mono);font-size:9px;letter-spacing:.26em;color:var(--dim);margin-bottom:12px;display:flex;align-items:center;gap:12px;}
+  .ilabel::after{content:'';flex:1;height:1px;background:var(--border);}
+  .ibox{background:var(--surface);border:1px solid var(--ba);transition:border-color .2s,box-shadow .2s;}
+  .ibox:focus-within{border-color:var(--sb);box-shadow:0 0 0 1px rgba(74,144,217,.14);}
+  .ibox.err{border-color:var(--red);}
+  textarea{width:100%;background:transparent;border:none;outline:none;color:var(--text);
+    font-family:var(--mono);font-size:11px;line-height:1.75;padding:18px 20px;resize:none;
+    min-height:110px;letter-spacing:.04em;}
+  textarea::placeholder{color:var(--dim);}
+  .iftr{display:flex;align-items:center;justify-content:space-between;padding:8px 13px;border-top:1px solid var(--border);gap:8px;flex-wrap:wrap;}
+  .icount{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.1em;}
+  .iact{display:flex;gap:7px;align-items:center;}
+  .tbtn{background:transparent;border:1px solid var(--border);color:var(--dim);font-family:var(--mono);font-size:9px;letter-spacing:.14em;padding:7px 13px;cursor:pointer;transition:all .2s;}
+  .tbtn:hover{border-color:var(--ba);color:var(--text);}
+  .rbtn{background:var(--red);border:none;color:#fff;font-family:var(--display);font-size:16px;
+    letter-spacing:.18em;padding:8px 24px;cursor:pointer;transition:background .2s,transform .1s;}
+  .rbtn:hover{background:#cc2222;}
+  .rbtn:active{transform:scale(.98);}
+  .rbtn:disabled{opacity:.45;cursor:not-allowed;}
+
+  .scan-phase{margin-bottom:48px;}
+  .term{background:var(--surface);border:1px solid var(--border);overflow:hidden;}
+  .tbar{background:#0d1117;border-bottom:1px solid var(--border);padding:9px 14px;
+    display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.1em;}
+  .tdots{display:flex;gap:4px;margin-right:6px;}
+  .tdots span{width:7px;height:7px;border-radius:50%;background:var(--ba);}
+  .tbody{padding:16px 20px;font-family:var(--mono);font-size:11px;min-height:120px;}
+  .tl{display:flex;align-items:baseline;gap:9px;margin-bottom:6px;opacity:0;transform:translateX(-4px);transition:opacity .22s,transform .22s;}
+  .tl.v{opacity:1;transform:none;}
+  .tp{color:var(--sb);min-width:13px;}
+  .tt{color:var(--dim);}
+  .tt.b{color:var(--text);}
+  .tprog{height:1px;background:var(--border);margin:1px 0 6px 22px;overflow:hidden;width:68%;transition:width .2s;}
+  .tprog-f{height:100%;background:linear-gradient(90deg,#1a4a8a,var(--sb));width:0%;transition:width .6s;}
+
+  .break-reveal{opacity:0;animation:fadeUp .5s ease .1s forwards;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+  .break-moment{border:1px solid rgba(255,51,51,.35);background:linear-gradient(180deg,rgba(255,51,51,.07) 0%,rgba(255,51,51,.03) 100%);overflow:hidden;margin-bottom:32px;}
+  .break-moment-top{background:rgba(255,51,51,.12);border-bottom:1px solid rgba(255,51,51,.25);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  .break-moment-label{font-family:var(--display);font-size:22px;letter-spacing:.15em;color:var(--red);display:flex;align-items:center;gap:10px;}
+  .blink{animation:blink 1s step-end infinite;}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+  .break-type-badge{font-family:var(--mono);font-size:9px;letter-spacing:.15em;color:var(--amber);background:var(--ad);padding:4px 10px;border:1px solid rgba(255,183,0,.2);}
+  .break-moment-body{padding:22px 20px;}
+  .break-location{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--dim);margin-bottom:10px;}
+  .break-quote{font-family:var(--mono);font-size:13px;color:var(--accent);font-style:italic;line-height:1.65;padding:14px 16px;background:rgba(0,0,0,.5);border-left:3px solid var(--red);margin-bottom:14px;}
+  .break-consequence{font-family:var(--mono);font-size:11px;color:var(--text);letter-spacing:.06em;line-height:1.7;margin-bottom:10px;}
+  .break-acct{font-family:var(--mono);font-size:10px;color:var(--red);letter-spacing:.1em;opacity:.9;}
+
+  .scores-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:32px;}
+  @media(max-width:400px){.scores-row{grid-template-columns:1fr;}}
+  .sc{background:var(--surface);border:1px solid var(--border);padding:14px 16px;position:relative;overflow:hidden;}
+  .sc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;}
+  .sc.red::after{background:var(--red);}
+  .sc.amber::after{background:var(--amber);}
+  .sc-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.2em;color:var(--dim);margin-bottom:6px;}
+  .sc-num{font-family:var(--display);font-size:44px;line-height:1;letter-spacing:.03em;}
+  .sc.red .sc-num{color:var(--red);}
+  .sc.amber .sc-num{color:var(--amber);}
+  .sc-vd{font-family:var(--mono);font-size:9px;letter-spacing:.14em;margin-top:4px;}
+  .sc.red .sc-vd{color:var(--red);}
+  .sc.amber .sc-vd{color:var(--amber);}
+
+  .corr-block{border:1px solid var(--border);overflow:hidden;margin-bottom:32px;}
+  .corr-hdr{background:#0d1117;border-bottom:1px solid var(--border);padding:9px 14px;font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--dim);}
+  .corr-step{display:flex;align-items:baseline;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--text);line-height:1.6;}
+  .corr-step:last-child{border-bottom:none;}
+  .corr-n{color:var(--sb);min-width:22px;font-size:8px;letter-spacing:.1em;flex-shrink:0;}
+
+  .deeper{border:1px solid rgba(74,144,217,.2);background:rgba(74,144,217,.04);padding:16px 18px;margin-bottom:36px;}
+  .deeper-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.22em;color:var(--sb);margin-bottom:8px;}
+  .deeper-text{font-family:var(--mono);font-size:11px;color:var(--text);line-height:1.75;letter-spacing:.05em;}
+
+  .cta{margin-bottom:64px;}
+  .cta-inner{border:1px solid rgba(255,51,51,.3);background:linear-gradient(180deg,rgba(255,51,51,.06) 0%,rgba(255,51,51,.02) 100%);padding:40px 24px;text-align:center;position:relative;}
+  .cta-inner::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);}
+  .cta-pre{font-family:var(--mono);font-size:10px;letter-spacing:.15em;color:var(--text);margin-bottom:20px;line-height:1.7;}
+  .cta-pre strong{color:var(--red);}
+  .cta-h{font-family:var(--display);font-size:clamp(34px,6vw,58px);letter-spacing:.07em;color:var(--accent);line-height:.95;margin-bottom:28px;}
+  .cta-h .r{color:var(--red);}
+
+  .egate{max-width:440px;margin:0 auto 14px;}
+  .egate-lbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--text);margin-bottom:10px;text-align:left;}
+  .egate-field-label{font-family:var(--mono);font-size:8px;letter-spacing:.2em;color:var(--dim);margin-bottom:5px;text-align:left;}
+  .egate-row{display:flex;border:1px solid var(--ba);}
+  .einput{flex:1;background:#0d1117;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:11px;padding:11px 14px;letter-spacing:.05em;min-width:0;}
+  .einput::placeholder{color:var(--dim);}
+  .esbmt{background:var(--red);border:none;color:#fff;font-family:var(--display);font-size:14px;letter-spacing:.16em;padding:11px 18px;cursor:pointer;white-space:nowrap;transition:background .2s;}
+  .esbmt:hover{background:#cc2222;}
+  .esbmt:disabled{opacity:.5;cursor:not-allowed;}
+  .egate-sub{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:.09em;margin-top:7px;text-align:left;}
+  .cta-foot{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:.1em;margin-top:16px;}
+
+  .reset-block{text-align:center;margin-bottom:48px;}
+  .reset-text{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.08em;margin-bottom:14px;line-height:1.7;}
+  .reset-text strong{color:var(--text);}
+  .reset-btn{background:transparent;border:1px solid var(--ba);color:var(--text);font-family:var(--display);font-size:16px;letter-spacing:.2em;padding:10px 28px;cursor:pointer;transition:all .2s;}
+  .reset-btn:hover{border-color:var(--sb);color:var(--sb);}
+
+  .api-error{padding:13px 16px;background:rgba(255,183,0,.07);border:1px solid rgba(255,183,0,.22);font-family:var(--mono);font-size:10px;color:var(--amber);letter-spacing:.07em;margin-top:10px;line-height:1.7;}
+
+  .footer{border-top:1px solid var(--border);padding:15px 20px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:.1em;flex-wrap:wrap;gap:6px;}
+
+  .hidden{display:none;}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <span class="hdr-id">DOD-SYSTEM / BUILD 4.0 / FORENSIC ENGINE</span>
+  <span class="hdr-t">DOD SYSTEM</span>
+  <span class="hdr-s"><span class="dot"></span>ACTIVE</span>
+</header>
+
+<section class="hero">
+  <span class="hero-eye">// DROP-OFF DETECTION — AI FORENSIC ENGINE //</span>
+  <h1>YOU'RE LOSING PEOPLE<br>AT <span class="r">ONE EXACT MOMENT.</span></h1>
+  <div class="hdiv"></div>
+  <p class="hero-sub">
+    Paste your content.<br>
+    The DOD System finds the exact line where they leave.<br>
+    Not a category. The actual sentence.
+  </p>
+</section>
+
+<div class="w">
+
+  <!-- INPUT PHASE -->
+  <div class="iw" id="inputPhase">
+    <div class="ilabel">// PASTE YOUR CONTENT TO BEGIN</div>
+    <div class="ibox" id="ibox">
+      <textarea id="contentInput" placeholder="Paste your post, email, caption, or hook here...&#10;&#10;The system will find the exact moment readers stop."></textarea>
+      <div class="iftr">
+        <span class="icount" id="charCount">0 chars</span>
+        <div class="iact">
+          <button class="tbtn" onclick="loadSample()">TRY SAMPLE</button>
+          <button class="rbtn" id="runBtn" onclick="runScan()">RUN SCAN</button>
+        </div>
+      </div>
+    </div>
+    <div class="api-error hidden" id="apiError"></div>
+  </div>
+
+  <!-- SCANNING PHASE -->
+  <div class="scan-phase hidden" id="scanPhase">
+    <div class="term">
+      <div class="tbar">
+        <div class="tdots"><span></span><span></span><span></span></div>
+        DOD-SCANNER v4.0 — FORENSIC ANALYSIS
+      </div>
+      <div class="tbody" id="termBody"></div>
+    </div>
+  </div>
+
+  <!-- RESULTS PHASE -->
+  <div class="hidden" id="resultsPhase">
+
+    <div class="break-reveal">
+
+      <!-- BREAK POINT — THE CORE MOMENT -->
+      <div class="break-moment">
+        <div class="break-moment-top">
+          <div class="break-moment-label">
+            <span class="blink">&#9654;</span> BREAK POINT FOUND
+          </div>
+          <span class="break-type-badge" id="failureTypeBadge"></span>
+        </div>
+        <div class="break-moment-body">
+          <div class="break-location" id="breakLocation"></div>
+          <div class="break-quote" id="breakQuote"></div>
+          <div class="break-consequence" id="breakConsequence"></div>
+          <div class="break-acct" id="breakAcct"></div>
+        </div>
+      </div>
+
+      <!-- SCORES -->
+      <div class="scores-row">
+        <div class="sc red">
+          <div class="sc-lbl">CLARITY SCORE</div>
+          <div class="sc-num" id="clarityNum">—</div>
+          <div class="sc-vd" id="clarityVerdict">—</div>
+        </div>
+        <div class="sc amber">
+          <div class="sc-lbl">DROP-OFF RISK</div>
+          <div class="sc-num" id="riskNum">—</div>
+          <div class="sc-vd" id="riskVerdict">—</div>
+        </div>
+      </div>
+
+      <!-- CORRECTION SEQUENCE -->
+      <div class="corr-block">
+        <div class="corr-hdr">// CORRECTION SEQUENCE</div>
+        <div id="corrSteps"></div>
+      </div>
+
+      <!-- DEEPER PATTERN -->
+      <div class="deeper" id="deeperBlock">
+        <div class="deeper-lbl">// UNDERLYING PATTERN DETECTED</div>
+        <div class="deeper-text" id="deeperText"></div>
+      </div>
+
+      <!-- CTA -->
+      <div class="cta">
+        <div class="cta-inner">
+          <div class="cta-pre">
+            You just saw where it breaks.<br>
+            <strong>Fix this before your next post.</strong>
+          </div>
+          <div class="cta-h">SHOW ME<br><span class="r">THE FIX.</span></div>
+
+          <div class="egate">
+            <div class="egate-lbl">I'll map the exact correction sequence for this break:</div>
+            <div class="egate-field-label">Your email address</div>
+            <div class="egate-row">
+              <input class="einput" type="email" id="emailInput" placeholder="Enter your email to receive the fix">
+              <button class="esbmt" id="submitBtn" onclick="submitEmail()">GENERATE THE CORRECTION</button>
+            </div>
+            <div class="egate-sub">Full DOD System access. No spam. Redirects immediately.</div>
+          </div>
+
+          <div class="cta-foot">// DOD-SYSTEM / MATTENGLEHART.COM //</div>
+        </div>
+      </div>
+
+      <!-- SECOND LAYER -->
+      <div class="reset-block">
+        <div class="reset-text">
+          <strong>There's a deeper pattern behind this.</strong><br>
+          And it's probably repeating across your content.
+        </div>
+        <button class="reset-btn" onclick="resetScan()">RUN SECOND LAYER</button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <span>DOD SYSTEM — DROP-OFF DETECTION</span>
+  <span>MATTENGLEHART.COM</span>
+  <span>BUILD 4.0 — FORENSIC ENGINE</span>
+</footer>
+
+<script>
+const SAMPLE = `I've been working on my content strategy for months and I keep seeing the same problem — I post, people see it, but then nothing. No clicks, no replies, no sales. I think the issue might be my hook, or maybe my offer just isn't clear enough. I've tried different formats but I'm not sure what's working. My audience seems engaged but the drop-off before the CTA is brutal.`;
+
+const SYSTEM_PROMPT = `You are the DOD System — a forensic break point detector for content. Your job is to find the single moment where a reader loses momentum and stops.
+
+Respond ONLY with valid JSON. No markdown, no explanation, no preamble.
+
+Analyze the submitted content and return:
+{
+  "breakLine": "<exact verbatim quote from the content — the single sentence or phrase where momentum dies. Must be word-for-word from the text, under 100 chars if possible>",
+  "breakLocation": "<where in the content this occurs, e.g. 'Opening line', 'Second sentence', 'Mid-content', 'Final ask'>",
+  "failureType": "<one of: HOOK COLLAPSE | CLARITY FAILURE | PROMISE GAP | HESITATION SPIKE | OVERLOAD ZONE | CTA COLLAPSE>",
+  "consequence": "<what happens to the reader at this exact moment — one brutal sentence, specific to what you found>",
+  "accountabilityLine": "<one line that places ownership on the writer — specific to what you found. Not generic.>",
+  "clarityScore": <integer 15-58>,
+  "riskScore": <integer 55-94>,
+  "fix1": "<the single most important correction — specific to this content, actionable, one sentence>",
+  "fix2": "<second correction — specific to this content>",
+  "fix3": "<third correction — specific to this content>",
+  "deeperPattern": "<one sentence describing the underlying habit or pattern causing this break — something that feels uncomfortably accurate>"
+}
+
+Rules:
+- breakLine must be verbatim from the submitted text
+- Every field must be specific to what you actually found — never generic
+- clarityScore and riskScore must reflect actual content quality — vary them meaningfully
+- consequence and accountabilityLine should feel uncomfortable, not clinical
+- deeperPattern should feel like something the writer has never heard named before`;
+
+let currentResult = null;
+let scanning = false;
+
+function esc(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function loadSample() {
+  document.getElementById('contentInput').value = SAMPLE;
+  updateCount();
+}
+
+function updateCount() {
+  const v = document.getElementById('contentInput').value;
+  document.getElementById('charCount').textContent = v.length + ' chars';
+}
+
+document.getElementById('contentInput').addEventListener('input', updateCount);
+document.getElementById('contentInput').addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 'Enter') runScan();
+});
+document.getElementById('emailInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitEmail();
+});
+
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+function addTermLine(text, bright, prog) {
+  const body = document.getElementById('termBody');
+  const line = document.createElement('div');
+  line.className = 'tl';
+  line.innerHTML = `<span class="tp">${bright ? '!' : '>'}</span><span class="tt${bright ? ' b' : ''}">${esc(text)}</span>`;
+  body.appendChild(line);
+  requestAnimationFrame(() => setTimeout(() => line.classList.add('v'), 20));
+
+  if (prog !== undefined) {
+    const pw = document.createElement('div');
+    pw.className = 'tprog';
+    const pf = document.createElement('div');
+    pf.className = 'tprog-f';
+    pw.appendChild(pf);
+    body.appendChild(pw);
+    requestAnimationFrame(() => setTimeout(() => { pf.style.width = prog + '%'; }, 40));
+  }
+  body.scrollTop = body.scrollHeight;
+}
+
+function animateScore(elId, target, onDone) {
+  const el = document.getElementById(elId);
+  let cur = 0;
+  const iv = setInterval(() => {
+    cur = Math.min(cur + target / 18, target);
+    el.textContent = Math.round(cur);
+    if (cur >= target) {
+      clearInterval(iv);
+      el.textContent = target;
+      if (onDone) onDone();
+    }
+  }, 30);
+}
+
+async function runScan() {
+  if (scanning) return;
+  const content = document.getElementById('contentInput').value.trim();
+
+  if (!content) {
+    const box = document.getElementById('ibox');
+    box.classList.add('err');
+    setTimeout(() => box.classList.remove('err'), 1100);
+    return;
+  }
+
+  scanning = true;
+  currentResult = null;
+
+  // Reset results
+  hide('apiError');
+  hide('resultsPhase');
+  document.getElementById('termBody').innerHTML = '';
+
+  // Switch to scan phase
+  hide('inputPhase');
+  show('scanPhase');
+
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.textContent = 'SCANNING...';
+
+  // Pre-scan lines
+  const pre = [
+    { text: 'Parsing content...', p: 20 },
+    { text: 'Locating hook sequence...', p: 45 },
+    { text: 'Scanning for break node...', p: 72 },
+    { text: 'Identifying failure point...', p: 92 },
+  ];
+
+  // Echo input preview
+  const body = document.getElementById('termBody');
+  const prev = document.createElement('div');
+  prev.className = 'tl v';
+  const preview = content.length > 90 ? content.substring(0, 90) + '...' : content;
+  prev.innerHTML = `<span class="tp">#</span><span class="tt" style="font-size:9px;color:var(--dim);line-height:1.6;">${esc(preview)}</span>`;
+  body.appendChild(prev);
+
+  pre.forEach((l, i) => {
+    setTimeout(() => addTermLine(l.text, false, l.p), i * 550);
+  });
+
+  try {
+    const res = await fetch('/.netlify/functions/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content })
+    });
+
+    const data = await res.json();
+    const parsed = data;
+    currentResult = parsed;
+
+    // Replace pre-scan with final result line
+    setTimeout(() => {
+      document.getElementById('termBody').innerHTML = '';
+      setTimeout(() => {
+        addTermLine(`BREAK POINT LOCATED — ${parsed.failureType}`, true);
+        setTimeout(() => renderResults(parsed), 700);
+      }, 200);
+    }, pre.length * 550 + 300);
+
+  } catch (err) {
+    setTimeout(() => {
+      addTermLine('ANALYSIS FAILED — check connection and try again', true);
+      const errEl = document.getElementById('apiError');
+      errEl.textContent = 'Connection error. Please try again.';
+      show('apiError');
+      // Show input again so they can retry
+      setTimeout(() => {
+        hide('scanPhase');
+        show('inputPhase');
+        btn.disabled = false;
+        btn.textContent = 'RUN SCAN';
+        scanning = false;
+      }, 1500);
+    }, pre.length * 550 + 300);
+  }
+}
+
+function renderResults(r) {
+  // Populate break moment
+  document.getElementById('failureTypeBadge').textContent = r.failureType;
+  document.getElementById('breakLocation').textContent = '// ' + r.breakLocation;
+  document.getElementById('breakQuote').textContent = '\u201c' + r.breakLine + '\u201d';
+  document.getElementById('breakConsequence').textContent = r.consequence;
+  document.getElementById('breakAcct').textContent = r.accountabilityLine;
+
+  // Correction steps
+  const steps = document.getElementById('corrSteps');
+  steps.innerHTML = '';
+  [r.fix1, r.fix2, r.fix3].filter(Boolean).forEach((fix, i) => {
+    const s = document.createElement('div');
+    s.className = 'corr-step';
+    s.innerHTML = `<span class="corr-n">${String(i+1).padStart(2,'0')} /</span><span>${esc(fix)}</span>`;
+    steps.appendChild(s);
+  });
+
+  // Deeper pattern
+  if (r.deeperPattern) {
+    document.getElementById('deeperText').textContent = r.deeperPattern;
+    show('deeperBlock');
+  }
+
+  // Show results, hide scanner
+  hide('scanPhase');
+  show('resultsPhase');
+
+  // Animate scores
+  const clarityVerdict = r.clarityScore < 35 ? 'CRITICAL' : r.clarityScore < 50 ? 'HIGH' : 'ELEVATED';
+  const riskVerdict = r.riskScore > 78 ? 'HIGH' : 'ELEVATED';
+  animateScore('clarityNum', r.clarityScore, () => {
+    document.getElementById('clarityVerdict').textContent = clarityVerdict;
+  });
+  animateScore('riskNum', r.riskScore, () => {
+    document.getElementById('riskVerdict').textContent = riskVerdict;
+  });
+
+  // Scroll to results
+  setTimeout(() => {
+    document.getElementById('resultsPhase').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+
+  // Re-enable button
+  const btn = document.getElementById('runBtn');
+  btn.disabled = false;
+  btn.textContent = 'RUN SCAN';
+  scanning = false;
+}
+
+async function submitEmail() {
+  const email = document.getElementById('emailInput').value.trim();
+  if (!email || !email.includes('@')) {
+    const el = document.getElementById('emailInput');
+    el.style.boxShadow = 'inset 0 0 0 1px rgba(255,51,51,.5)';
+    setTimeout(() => { el.style.boxShadow = ''; }, 1100);
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'SENDING...';
+
+  // Submit to Kit
+  try {
+    await fetch('https://app.convertkit.com/forms/293a33d4ec/subscriptions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'email_address=' + encodeURIComponent(email)
+    });
+  } catch (_) {
+    // Kit failed — still redirect, never lose the buyer
+  }
+
+  window.location.href = '/thanks';
+}
+
+function resetScan() {
+  currentResult = null;
+  scanning = false;
+  document.getElementById('contentInput').value = '';
+  document.getElementById('emailInput').value = '';
+  document.getElementById('charCount').textContent = '0 chars';
+  document.getElementById('termBody').innerHTML = '';
+  document.getElementById('corrSteps').innerHTML = '';
+  document.getElementById('deeperText').textContent = '';
+  document.getElementById('clarityNum').textContent = '—';
+  document.getElementById('riskNum').textContent = '—';
+  document.getElementById('clarityVerdict').textContent = '—';
+  document.getElementById('riskVerdict').textContent = '—';
+  hide('scanPhase');
+  hide('resultsPhase');
+  hide('deeperBlock');
+  hide('apiError');
+  show('inputPhase');
+  const btn = document.getElementById('runBtn');
+  btn.disabled = false;
+  btn.textContent = 'RUN SCAN';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
