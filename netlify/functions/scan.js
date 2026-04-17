@@ -69,16 +69,16 @@ Rules:
     const raw = (data.content || []).map(function(b) { return b.text || ''; }).join('');
     const cleaned = raw.replace(/```json|```/g, '').trim();
 
-    JSON.parse(cleaned);
+    const parsed = JSON.parse(cleaned);
 
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      },
-      body: cleaned
-    };
+return {
+  statusCode: 200,
+  headers: {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*'
+  },
+  body: JSON.stringify(parsed)
+};
 
   } catch (err) {
     return {
