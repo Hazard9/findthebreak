@@ -149,6 +149,11 @@
   .footer{border-top:1px solid var(--border);padding:15px 20px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:.1em;flex-wrap:wrap;gap:6px;}
 
   .hidden{display:none;}
+
+  .platform-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+  .pbtn{background:transparent;border:1px solid var(--border);color:var(--dim);font-family:var(--mono);font-size:8px;letter-spacing:.14em;padding:6px 11px;cursor:pointer;transition:all .2s;}
+  .pbtn:hover{border-color:var(--ba);color:var(--text);}
+  .pbtn.active{border-color:var(--sb);color:var(--sb);background:rgba(74,144,217,.06);}
 </style>
 </head>
 <body>
@@ -174,7 +179,15 @@
 
   <!-- INPUT PHASE -->
   <div class="iw" id="inputPhase">
-    <div class="ilabel">// PASTE YOUR CONTENT TO BEGIN</div>
+    <div class="ilabel">// SELECT PLATFORM — SHARPENS THE DIAGNOSIS</div>
+    <div class="platform-row" id="platformRow">
+      <button class="pbtn active" onclick="setPlatform(this,'SOCIAL POST')">SOCIAL POST</button>
+      <button class="pbtn" onclick="setPlatform(this,'EMAIL')">EMAIL</button>
+      <button class="pbtn" onclick="setPlatform(this,'LANDING PAGE')">LANDING PAGE</button>
+      <button class="pbtn" onclick="setPlatform(this,'LONG-FORM')">LONG-FORM</button>
+      <button class="pbtn" onclick="setPlatform(this,'CAPTION')">CAPTION</button>
+    </div>
+    <div class="ilabel" style="margin-top:18px;">// PASTE YOUR CONTENT TO BEGIN</div>
     <div class="ibox" id="ibox">
       <textarea id="contentInput" placeholder="Paste your post, email, caption, or hook here...&#10;&#10;The system will find the exact moment readers stop."></textarea>
       <div class="iftr">
@@ -665,6 +678,13 @@ function analyzeContent(text) {
 
 let currentResult = null;
 let scanning = false;
+let currentPlatform = 'SOCIAL POST';
+
+function setPlatform(btn, platform) {
+  currentPlatform = platform;
+  document.querySelectorAll('.pbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
 
 function esc(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -790,6 +810,7 @@ async function runScan() {
       }, 1200);
     }
   }, pre.length * 480 + 400);
+}
 
 function renderResults(r) {
   // Populate break moment
@@ -894,3 +915,4 @@ function resetScan() {
 </script>
 </body>
 </html>
+  
