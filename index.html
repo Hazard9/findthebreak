@@ -292,31 +292,376 @@
 <script>
 const SAMPLE = `I've been working on my content strategy for months and I keep seeing the same problem — I post, people see it, but then nothing. No clicks, no replies, no sales. I think the issue might be my hook, or maybe my offer just isn't clear enough. I've tried different formats but I'm not sure what's working. My audience seems engaged but the drop-off before the CTA is brutal.`;
 
-const SYSTEM_PROMPT = `You are the DOD System — a forensic break point detector for content. Your job is to find the single moment where a reader loses momentum and stops.
+// ─── DOD FORENSIC ENGINE v5.0 — RULE-BASED ANALYSIS ───────────────────────
 
-Respond ONLY with valid JSON. No markdown, no explanation, no preamble.
+const FAILURE_TYPES = {
+  HOOK_COLLAPSE:    'HOOK COLLAPSE',
+  CLARITY_FAILURE:  'CLARITY FAILURE',
+  PROMISE_GAP:      'PROMISE GAP',
+  HESITATION_SPIKE: 'HESITATION SPIKE',
+  OVERLOAD_ZONE:    'OVERLOAD ZONE',
+  CTA_COLLAPSE:     'CTA COLLAPSE',
+  TENSION_DROP:     'TENSION DROP',
+  AUTHORITY_VOID:   'AUTHORITY VOID'
+};
 
-Analyze the submitted content and return:
-{
-  "breakLine": "<exact verbatim quote from the content — the single sentence or phrase where momentum dies. Must be word-for-word from the text, under 100 chars if possible>",
-  "breakLocation": "<where in the content this occurs, e.g. 'Opening line', 'Second sentence', 'Mid-content', 'Final ask'>",
-  "failureType": "<one of: HOOK COLLAPSE | CLARITY FAILURE | PROMISE GAP | HESITATION SPIKE | OVERLOAD ZONE | CTA COLLAPSE>",
-  "consequence": "<what happens to the reader at this exact moment — one brutal sentence, specific to what you found>",
-  "accountabilityLine": "<one line that places ownership on the writer — specific to what you found. Not generic.>",
-  "clarityScore": <integer 15-58>,
-  "riskScore": <integer 55-94>,
-  "fix1": "<the single most important correction — specific to this content, actionable, one sentence>",
-  "fix2": "<second correction — specific to this content>",
-  "fix3": "<third correction — specific to this content>",
-  "deeperPattern": "<one sentence describing the underlying habit or pattern causing this break — something that feels uncomfortably accurate>"
+// Sentence tokenizer — handles ellipsis, abbreviations, line breaks
+function tokenize(text) {
+  const raw = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  const chunks = raw.split(/(?<=[.!?…])\s+(?=[A-Z"'(])|(?<=\n)\s*(?=\S)/);
+  const sentences = [];
+  chunks.forEach(chunk => {
+    const parts = chunk.split(/\n{2,}/);
+    parts.forEach(p => { if (p.trim().length > 6) sentences.push(p.trim()); });
+  });
+  return sentences.filter(s => s.length > 6);
 }
 
-Rules:
-- breakLine must be verbatim from the submitted text
-- Every field must be specific to what you actually found — never generic
-- clarityScore and riskScore must reflect actual content quality — vary them meaningfully
-- consequence and accountabilityLine should feel uncomfortable, not clinical
-- deeperPattern should feel like something the writer has never heard named before`;
+// Per-sentence risk scoring — multi-factor
+function scoreSentence(sentence, index, total) {
+  let risk = 0;
+  const s = sentence.toLowerCase();
+  const words = s.split(/\s+/);
+  const wc = words.length;
+
+  // ── Factor 1: Tension collapse signals ──
+  const tensionKillers = [
+    /\bjust\b.*\b(need|have to|be)\b/,/\bit'?s? (really )?simple/,/\bit'?s? easy/,
+    /\banyone can\b/,/\bdon'?t worry\b/,/\bno big deal\b/,/\bbasically\b/,
+    /\bto be honest\b/,/\btruth is\b.*\bsimple\b/,/\ball you (need|have) to\b/
+  ];
+  tensionKillers.forEach(r => { if(r.test(s)) risk += 18; });
+
+  // ── Factor 2: Vagueness / non-specificity ──
+  const vagueTerms = ['things','stuff','something','somehow','various','different',
+    'certain','several','many','some','a lot','etc','and so on','whatever',
+    'kind of','sort of','maybe','perhaps','might','possibly','probably'];
+  const vagueCount = vagueTerms.filter(t => s.includes(t)).length;
+  risk += vagueCount * 11;
+
+  // ── Factor 3: Passive voice / weak agency ──
+  if (/\b(is|are|was|were|be|been|being)\s+(being\s+)?\w+ed\b/.test(s)) risk += 14;
+  if (/\byou might want to\b|\bcould potentially\b|\bit may be\b/.test(s)) risk += 12;
+
+  // ── Factor 4: Overlong sentence ──
+  if (wc > 35) risk += 22;
+  else if (wc > 25) risk += 12;
+  else if (wc > 18) risk += 6;
+
+  // ── Factor 5: Promise without proof ──
+  const bigClaims = [/\bchange your life\b/,/\btransform\b/,/\bguarantee\b/,
+    /\bnever.*again\b/,/\balways works\b/,/\beveryone\b.*\bwants\b/,/\bbest\b.*\bever\b/];
+  bigClaims.forEach(r => { if(r.test(s)) risk += 16; });
+
+  // ── Factor 6: Hesitation language ──
+  const hedges = ['i think','i believe','i feel like','i guess','not sure',
+    'hard to say','difficult to know','i wonder','i\'m not certain'];
+  hedges.forEach(h => { if(s.includes(h)) risk += 20; });
+
+  // ── Factor 7: Contradiction / backpedal ──
+  if (/\bbut\b.{0,30}\bbut\b/.test(s)) risk += 15;
+  if (/\bhowever\b|\bon the other hand\b|\bthat said\b/.test(s) && index < 3) risk += 18;
+
+  // ── Factor 8: CTA position penalty ──
+  const posFrac = index / Math.max(total - 1, 1);
+  if (posFrac > 0.75) {
+    const ctaSignals = ['click','buy','get','grab','check out','sign up','subscribe',
+      'follow','link','dm','comment','download','join','start'];
+    const hasCTA = ctaSignals.some(c => s.includes(c));
+    if (!hasCTA && posFrac > 0.85) risk += 10; // late content with no CTA direction
+  }
+
+  // ── Factor 9: Mid-content authority void ──
+  if (posFrac > 0.3 && posFrac < 0.7) {
+    const authoritySignals = ['i did','i found','i tested','i ran','i built',
+      'the result','the data','the number','proved','showed','demonstrated'];
+    const hasAuthority = authoritySignals.some(a => s.includes(a));
+    if (!hasAuthority && wc > 10) risk += 8;
+  }
+
+  // ── Factor 10: Repetition of opening idea ──
+  if (index > 1 && /\b(again|as i said|like i mentioned|as mentioned)\b/.test(s)) risk += 14;
+
+  // ── Factor 11: Hook strength (first sentence bonus/penalty) ──
+  if (index === 0) {
+    const strongHookPatterns = [/\?$/,/^(most|every|nobody|no one|stop|if you)/,
+      /\d+\s*(ways|reasons|things|steps|mistakes)/,/\byou'?re\b.*\b(wrong|missing|making)\b/];
+    const isStrong = strongHookPatterns.some(r => r.test(s));
+    if (!isStrong) risk += 15;
+    else risk -= 10;
+  }
+
+  // ── Factor 12: Filler / throat-clearing ──
+  const fillers = ['so,','well,','look,','listen,','anyway,','basically,',
+    'as you know','as we all know','it goes without saying','needless to say'];
+  fillers.forEach(f => { if(s.startsWith(f) || s.includes(' '+f)) risk += 13; });
+
+  return Math.max(0, Math.min(100, risk));
+}
+
+// Classify failure type from sentence + context
+function classifyFailure(sentence, index, total, scores) {
+  const s = sentence.toLowerCase();
+  const posFrac = index / Math.max(total - 1, 1);
+  const score = scores[index];
+
+  if (index <= 1 && score > 25) return FAILURE_TYPES.HOOK_COLLAPSE;
+
+  const hedges = ['i think','i believe','not sure','i guess','i feel like','might','probably','perhaps'];
+  if (hedges.some(h => s.includes(h))) return FAILURE_TYPES.HESITATION_SPIKE;
+
+  const vague = ['things','stuff','something','various','different','somehow','whatever'];
+  const vagueCount = vague.filter(v => s.includes(v)).length;
+  if (vagueCount >= 2) return FAILURE_TYPES.CLARITY_FAILURE;
+
+  const bigClaims = ['change your life','transform','guarantee','never again','always works'];
+  if (bigClaims.some(c => s.includes(c)) && total > 3) return FAILURE_TYPES.PROMISE_GAP;
+
+  const wc = s.split(/\s+/).length;
+  if (wc > 30) return FAILURE_TYPES.OVERLOAD_ZONE;
+
+  if (posFrac > 0.75) {
+    const ctaSignals = ['click','buy','get','grab','link','dm','sign up','follow','download'];
+    if (!ctaSignals.some(c => s.includes(c))) return FAILURE_TYPES.CTA_COLLAPSE;
+  }
+
+  if (/\b(but|however|although|though)\b/.test(s) && posFrac < 0.5) return FAILURE_TYPES.TENSION_DROP;
+
+  const authorityTerms = ['i did','i found','i tested','i ran','proved','showed','the result','the data'];
+  if (posFrac > 0.3 && !authorityTerms.some(a => s.includes(a)) && score > 20) return FAILURE_TYPES.AUTHORITY_VOID;
+
+  return FAILURE_TYPES.CLARITY_FAILURE;
+}
+
+// Generate consequence based on failure type and sentence
+function generateConsequence(failureType, sentence, index, total) {
+  const posFrac = index / Math.max(total - 1, 1);
+  const position = posFrac < 0.2 ? 'opening' : posFrac < 0.5 ? 'early middle' : posFrac < 0.75 ? 'mid-content' : 'closing';
+
+  const consequences = {
+    [FAILURE_TYPES.HOOK_COLLAPSE]: [
+      `The reader has no reason to keep going — the opening gives them nothing they didn't already know.`,
+      `Attention dies before the read begins. The first line sets the expectation and this one sets none.`,
+      `There is no tension created here. The reader sees a familiar pattern and leaves before the second line.`
+    ],
+    [FAILURE_TYPES.CLARITY_FAILURE]: [
+      `The reader hits this sentence and stops — not to leave, but to try to understand what you mean. They give up instead.`,
+      `Vague language signals the writer doesn't fully know what they're saying. The reader picks up on this immediately.`,
+      `This sentence makes the reader work harder than they're willing to. At the ${position}, that work ends the read.`
+    ],
+    [FAILURE_TYPES.PROMISE_GAP]: [
+      `A claim this large demands proof immediately after. When it doesn't arrive, the reader's trust collapses.`,
+      `The reader has heard this before. Without specific evidence, this lands as noise and they scroll.`,
+      `Big promise, no backing. The reader's skepticism activates right here and doesn't recover.`
+    ],
+    [FAILURE_TYPES.HESITATION_SPIKE]: [
+      `Uncertainty is contagious. The moment you hedge, the reader loses confidence in everything before this point.`,
+      `You undermined your own authority in one sentence. The reader was following you until you stopped following yourself.`,
+      `Hesitation language signals you don't fully believe what you're saying. The reader feels this and disengages.`
+    ],
+    [FAILURE_TYPES.OVERLOAD_ZONE]: [
+      `This sentence asks the reader to hold too many things at once. At the ${position}, they drop everything and leave.`,
+      `The cognitive load spikes here. On mobile, in a scroll environment, this sentence loses the majority of readers.`,
+      `Too much compressed into one sentence. The reader can't parse it fast enough and moves on.`
+    ],
+    [FAILURE_TYPES.CTA_COLLAPSE]: [
+      `The content builds to this moment and then fails to direct the reader anywhere. Momentum dies without a clear next step.`,
+      `Readers who stayed this long are ready to act — but nothing tells them what to do. They leave by default.`,
+      `The close has no direction. The reader finishes and moves on because nothing asked them to stay.`
+    ],
+    [FAILURE_TYPES.TENSION_DROP]: [
+      `The tension you built gets cancelled here. The reader was leaning in — this sentence pushes them back.`,
+      `This is where the forward momentum reverses. Everything you built before this point loses its pull.`,
+      `A contradiction at the ${position} breaks the reader's trust in the direction of the content.`
+    ],
+    [FAILURE_TYPES.AUTHORITY_VOID]: [
+      `You're making assertions with nothing behind them. The reader needs proof at this stage and none arrives.`,
+      `Claims without grounding read as opinion. At the ${position}, the reader needs evidence or they disengage.`,
+      `The content tells without showing. A specific result or example here would have kept them reading.`
+    ]
+  };
+
+  const options = consequences[failureType] || consequences[FAILURE_TYPES.CLARITY_FAILURE];
+  return options[Math.floor(Math.abs(sentence.length * 7 + index * 3) % options.length)];
+}
+
+// Generate accountability line
+function generateAccountabilityLine(failureType, sentence) {
+  const lines = {
+    [FAILURE_TYPES.HOOK_COLLAPSE]: `You opened without creating a reason to read. This is a writing decision, not an algorithm problem.`,
+    [FAILURE_TYPES.CLARITY_FAILURE]: `You knew what you meant when you wrote this. Your reader didn't. That gap is yours to close.`,
+    [FAILURE_TYPES.PROMISE_GAP]: `You made the claim. You didn't back it. The reader noticed before you did.`,
+    [FAILURE_TYPES.HESITATION_SPIKE]: `Your doubt is in the sentence. The reader read your uncertainty before they read your point.`,
+    [FAILURE_TYPES.OVERLOAD_ZONE]: `You wrote this sentence for yourself, not for someone reading it once at speed.`,
+    [FAILURE_TYPES.CTA_COLLAPSE]: `You built momentum and then left the reader with nowhere to go. The exit was yours to control.`,
+    [FAILURE_TYPES.TENSION_DROP]: `You pulled the reader forward and then cancelled the pull. The reversal is in your word choice.`,
+    [FAILURE_TYPES.AUTHORITY_VOID]: `You stated. You didn't prove. At this point in the read, stating is not enough.`
+  };
+  return lines[failureType] || lines[FAILURE_TYPES.CLARITY_FAILURE];
+}
+
+// Generate position label
+function positionLabel(index, total) {
+  const frac = index / Math.max(total - 1, 1);
+  if (index === 0) return 'Opening line';
+  if (index === 1) return 'Second sentence';
+  if (index === 2) return 'Third sentence';
+  if (frac < 0.25) return `Early content — sentence ${index + 1}`;
+  if (frac < 0.5) return `Mid-open — sentence ${index + 1}`;
+  if (frac < 0.75) return `Mid-content — sentence ${index + 1}`;
+  if (frac < 0.9) return `Pre-close — sentence ${index + 1}`;
+  return `Closing section — sentence ${index + 1}`;
+}
+
+// Generate correction sequence
+function generateFixes(failureType, sentence, index, total) {
+  const s = sentence.toLowerCase();
+  const fixes = {
+    [FAILURE_TYPES.HOOK_COLLAPSE]: [
+      `Rewrite the opening line to name a specific consequence the reader is already experiencing — not a general topic.`,
+      `Remove any sentence that explains what you're about to say. Start with the thing itself.`,
+      `The second sentence must increase tension from the first. If it resolves or explains, cut it.`
+    ],
+    [FAILURE_TYPES.CLARITY_FAILURE]: [
+      `Replace every vague noun in this sentence with the specific thing you actually mean.`,
+      `Read this sentence as if you've never heard of your topic. If anything is unclear, rewrite it from that perspective.`,
+      `Cut this sentence in half. Put the second half in the next sentence. Clarity comes from shorter units.`
+    ],
+    [FAILURE_TYPES.PROMISE_GAP]: [
+      `Follow every large claim immediately with one specific, concrete piece of evidence — a number, a result, a name.`,
+      `Replace the claim with the proof. Let the proof make the claim for you.`,
+      `If you cannot back this claim specifically right now, lower the claim until you can back it.`
+    ],
+    [FAILURE_TYPES.HESITATION_SPIKE]: [
+      `Remove every hedge word from this sentence. Say the thing directly. If you can't, reconsider whether you believe it.`,
+      `Replace "I think" / "maybe" / "probably" language with either a direct statement or a question. Never both.`,
+      `Audit the three sentences before this one. Hedging rarely starts at the hedge — it builds up. Find where your confidence dropped.`
+    ],
+    [FAILURE_TYPES.OVERLOAD_ZONE]: [
+      `Split this sentence at the first conjunction (and, but, because, which). Make two sentences.`,
+      `Identify the single most important idea in this sentence. Delete everything else.`,
+      `Read this sentence out loud. Wherever you naturally pause or take a breath — that is where the period goes.`
+    ],
+    [FAILURE_TYPES.CTA_COLLAPSE]: [
+      `Add a single, direct action sentence at the close. One verb. One destination. No options.`,
+      `Remove any language that softens the ask. "If you want" and "feel free to" are exits for the reader.`,
+      `The CTA should name the exact outcome of clicking, not the action of clicking. Replace the action with the result.`
+    ],
+    [FAILURE_TYPES.TENSION_DROP]: [
+      `Replace the reversal with an escalation. Instead of "but," use the contradiction to deepen the problem.`,
+      `Remove the word that cancels the previous sentence's momentum. Find what you were actually trying to say.`,
+      `If this sentence qualifies the previous one, delete the qualification entirely. Trust the previous statement.`
+    ],
+    [FAILURE_TYPES.AUTHORITY_VOID]: [
+      `Add one specific data point, result, or named example after this sentence before moving on.`,
+      `Replace the assertion with a demonstration. Show the thing instead of stating it.`,
+      `If you have no proof available, reframe the sentence as a question the reader is already asking — then answer it specifically.`
+    ]
+  };
+  return fixes[failureType] || fixes[FAILURE_TYPES.CLARITY_FAILURE];
+}
+
+// Generate deeper pattern
+function generatePattern(failureType, sentences, breakIndex, scores) {
+  const avgScore = scores.reduce((a,b)=>a+b,0)/scores.length;
+  const highRiskCount = scores.filter(s=>s>30).length;
+  const ratio = highRiskCount / sentences.length;
+
+  const patterns = {
+    [FAILURE_TYPES.HOOK_COLLAPSE]: `You're writing for someone who already cares — but your reader doesn't care yet. You're starting at step two of every piece of content you write.`,
+    [FAILURE_TYPES.CLARITY_FAILURE]: `You understand your topic so thoroughly that you've stopped explaining it. Your clarity gap isn't about skill — it's about proximity. You're too close to what you know.`,
+    [FAILURE_TYPES.PROMISE_GAP]: `You lead with the conclusion and work backward. This feels confident but reads as unearned. Your evidence is there — you're just burying it behind the claim it should be supporting.`,
+    [FAILURE_TYPES.HESITATION_SPIKE]: `You write confidently until the moment you have to commit to something specific — then the hedging starts. The break isn't in this sentence. It's in your relationship to being wrong.`,
+    [FAILURE_TYPES.OVERLOAD_ZONE]: `You think in dense, connected ideas and you write the way you think. On paper this looks thorough. On a screen, at speed, it reads as work. Your reader isn't willing to do that work for free.`,
+    [FAILURE_TYPES.CTA_COLLAPSE]: `You're comfortable building the case but uncomfortable making the ask. The content is strong and the close disappears. This pattern shows up every time you're close to converting someone.`,
+    [FAILURE_TYPES.TENSION_DROP]: `You create tension well and then resolve it before it does its job. The relief you're giving the reader is the exact thing that was going to make them act.`,
+    [FAILURE_TYPES.AUTHORITY_VOID]: `You write from a position of knowledge but you rarely show your work. The reader can sense the expertise but can't verify it. Specificity is the proof you keep leaving out.`
+  };
+
+  return patterns[failureType] || patterns[FAILURE_TYPES.CLARITY_FAILURE];
+}
+
+// Compute clarity and risk scores
+function computeScores(sentences, scores, breakIndex) {
+  const avg = scores.reduce((a,b)=>a+b,0)/Math.max(scores.length,1);
+  const breakScore = scores[breakIndex] || 0;
+  const highCount = scores.filter(s=>s>28).length;
+  const ratio = highCount/Math.max(sentences.length,1);
+
+  // Clarity: inverse of average sentence risk, adjusted for break severity
+  let clarity = Math.round(100 - avg*0.7 - breakScore*0.15 - ratio*20);
+  clarity = Math.max(14, Math.min(58, clarity));
+
+  // Drop-off risk: weighted toward break point severity and high-risk density
+  let dropRisk = Math.round(breakScore*0.5 + avg*0.3 + ratio*40 + breakIndex===0?15:0);
+  dropRisk = Math.max(52, Math.min(96, dropRisk));
+
+  return { clarityScore: clarity, riskScore: dropRisk };
+}
+
+// ── MAIN ANALYSIS FUNCTION ──
+function analyzeContent(text) {
+  const sentences = tokenize(text);
+  if (sentences.length < 2) {
+    return {
+      breakLine: text.substring(0, 80),
+      breakLocation: 'Full content',
+      failureType: FAILURE_TYPES.CLARITY_FAILURE,
+      consequence: 'Content too short to create momentum. There is nothing to drop off from because there is nothing to hold on to.',
+      accountabilityLine: 'More than one sentence is required before a break point can exist.',
+      clarityScore: 24,
+      riskScore: 71,
+      fix1: 'Expand this to at least 4-6 sentences before running the scanner.',
+      fix2: 'Open with a tension statement. Follow with evidence. Close with direction.',
+      fix3: 'Short content fails silently. Length alone is not the issue — structure is.',
+      deeperPattern: 'You may be compressing because you fear losing the reader. The irony is that compression is what loses them.'
+    };
+  }
+
+  // Score every sentence
+  const scores = sentences.map((s, i) => scoreSentence(s, i, sentences.length));
+
+  // Find highest-risk sentence — weight toward middle sentences (hooks get a pass if content is strong)
+  const weighted = scores.map((s, i) => {
+    const frac = i / Math.max(sentences.length - 1, 1);
+    // Slightly penalize first-sentence breaks unless score is very high (hook must really fail)
+    const posWeight = i === 0 ? 0.75 : i === sentences.length-1 ? 0.85 : 1.0;
+    return s * posWeight;
+  });
+
+  let breakIndex = weighted.indexOf(Math.max(...weighted));
+
+  // If max score is very low overall, pick the weakest structural position
+  if (Math.max(...scores) < 15) {
+    const midStart = Math.floor(sentences.length * 0.3);
+    const midEnd = Math.floor(sentences.length * 0.7);
+    breakIndex = midStart + scores.slice(midStart, midEnd+1).indexOf(Math.max(...scores.slice(midStart, midEnd+1)));
+  }
+
+  const breakSentence = sentences[breakIndex];
+  const failureType = classifyFailure(breakSentence, breakIndex, sentences.length, scores);
+  const consequence = generateConsequence(failureType, breakSentence, breakIndex, sentences.length);
+  const accountabilityLine = generateAccountabilityLine(failureType, breakSentence);
+  const fixes = generateFixes(failureType, breakSentence, breakIndex, sentences.length);
+  const deeperPattern = generatePattern(failureType, sentences, breakIndex, scores);
+  const { clarityScore, riskScore } = computeScores(sentences, scores, breakIndex);
+
+  return {
+    breakLine: breakSentence.length > 120 ? breakSentence.substring(0, 117) + '...' : breakSentence,
+    breakLocation: positionLabel(breakIndex, sentences.length),
+    failureType,
+    consequence,
+    accountabilityLine,
+    clarityScore,
+    riskScore,
+    fix1: fixes[0],
+    fix2: fixes[1],
+    fix3: fixes[2],
+    deeperPattern
+  };
+}
+
+
 
 let currentResult = null;
 let scanning = false;
@@ -394,12 +739,9 @@ async function runScan() {
   scanning = true;
   currentResult = null;
 
-  // Reset results
   hide('apiError');
   hide('resultsPhase');
   document.getElementById('termBody').innerHTML = '';
-
-  // Switch to scan phase
   hide('inputPhase');
   show('scanPhase');
 
@@ -407,15 +749,15 @@ async function runScan() {
   btn.disabled = true;
   btn.textContent = 'SCANNING...';
 
-  // Pre-scan lines
   const pre = [
-    { text: 'Parsing content...', p: 20 },
-    { text: 'Locating hook sequence...', p: 45 },
-    { text: 'Scanning for break node...', p: 72 },
-    { text: 'Identifying failure point...', p: 92 },
+    { text: 'Parsing content structure...', p: 18 },
+    { text: 'Tokenizing sentence sequence...', p: 36 },
+    { text: 'Running tension decay analysis...', p: 54 },
+    { text: 'Scoring clarity vectors...', p: 72 },
+    { text: 'Locating break node...', p: 89 },
+    { text: 'Classifying failure pattern...', p: 97 },
   ];
 
-  // Echo input preview
   const body = document.getElementById('termBody');
   const prev = document.createElement('div');
   prev.className = 'tl v';
@@ -424,46 +766,30 @@ async function runScan() {
   body.appendChild(prev);
 
   pre.forEach((l, i) => {
-    setTimeout(() => addTermLine(l.text, false, l.p), i * 550);
+    setTimeout(() => addTermLine(l.text, false, l.p), i * 480);
   });
 
-  try {
-    const res = await fetch('/.netlify/functions/scan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content })
-    });
-
-    const data = await res.json();
-    const parsed = data;
-    currentResult = parsed;
-
-    // Replace pre-scan with final result line
-    setTimeout(() => {
+  // Run engine after animation completes
+  setTimeout(() => {
+    try {
+      const parsed = analyzeContent(content);
+      currentResult = parsed;
       document.getElementById('termBody').innerHTML = '';
       setTimeout(() => {
         addTermLine(`BREAK POINT LOCATED — ${parsed.failureType}`, true);
         setTimeout(() => renderResults(parsed), 700);
       }, 200);
-    }, pre.length * 550 + 300);
-
-  } catch (err) {
-    setTimeout(() => {
-      addTermLine('ANALYSIS FAILED — check connection and try again', true);
-      const errEl = document.getElementById('apiError');
-      errEl.textContent = 'Connection error. Please try again.';
-      show('apiError');
-      // Show input again so they can retry
+    } catch(err) {
+      addTermLine('SCAN ERROR — try again', true);
       setTimeout(() => {
         hide('scanPhase');
         show('inputPhase');
         btn.disabled = false;
         btn.textContent = 'RUN SCAN';
         scanning = false;
-      }, 1500);
-    }, pre.length * 550 + 300);
-  }
-}
+      }, 1200);
+    }
+  }, pre.length * 480 + 400);
 
 function renderResults(r) {
   // Populate break moment
