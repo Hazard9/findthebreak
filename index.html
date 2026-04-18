@@ -155,6 +155,41 @@
   .pbtn:hover{border-color:var(--ba);color:var(--text);}
   .pbtn.active{border-color:var(--sb);color:var(--sb);background:rgba(74,144,217,.06);}
 
+  .sl-header{padding:20px 0 8px;margin-bottom:18px;border-bottom:1px solid var(--border);}
+  .sl-tag{font-family:var(--mono);font-size:9px;letter-spacing:.22em;color:var(--sb);display:block;margin-bottom:6px;}
+  .sl-sub{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.06em;line-height:1.7;}
+  .sl-block{border:1px solid var(--border);overflow:hidden;margin-bottom:22px;}
+  .sl-block-hdr{background:#0d1117;border-bottom:1px solid var(--border);padding:9px 14px;font-family:var(--mono);font-size:8px;letter-spacing:.22em;color:var(--dim);}
+  .sl-arc-block{border:1px solid var(--border);overflow:hidden;margin-bottom:22px;}
+  .sl-arc-track{display:flex;align-items:flex-end;gap:3px;padding:16px 14px 8px;min-height:80px;flex-wrap:wrap;}
+  .sl-bar{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:18px;max-width:32px;}
+  .sl-bar-fill{width:100%;border-radius:1px;transition:height .4s;}
+  .sl-bar-fill.rise{background:var(--green);opacity:.7;}
+  .sl-bar-fill.hold{background:var(--sb);opacity:.5;}
+  .sl-bar-fill.drop{background:var(--amber);opacity:.7;}
+  .sl-bar-fill.break{background:var(--red);opacity:.9;}
+  .sl-bar-num{font-family:var(--mono);font-size:7px;color:var(--dim);}
+  .sl-arc-legend{display:flex;gap:14px;padding:6px 14px 12px;flex-wrap:wrap;}
+  .sl-leg{font-family:var(--mono);font-size:8px;letter-spacing:.1em;}
+  .sl-leg-rise{color:var(--green);}
+  .sl-leg-hold{color:var(--sb);}
+  .sl-leg-drop{color:var(--amber);}
+  .sl-leg-break{color:var(--red);}
+  .sl-signal-row{padding:14px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;}
+  .sl-signal-row:last-child{border-bottom:none;}
+  .sl-signal-type{font-family:var(--mono);font-size:8px;letter-spacing:.16em;color:var(--amber);min-width:110px;padding-top:2px;flex-shrink:0;}
+  .sl-signal-body{}
+  .sl-signal-title{font-family:var(--body);font-size:14px;font-weight:700;color:var(--accent);margin-bottom:3px;}
+  .sl-signal-desc{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.06em;line-height:1.7;}
+  .sl-pattern-block{background:rgba(74,144,217,.04);border:1px solid rgba(74,144,217,.2);padding:20px 18px;margin-bottom:22px;position:relative;}
+  .sl-pattern-block::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--sb),transparent);}
+  .sl-pattern-label{font-family:var(--mono);font-size:8px;letter-spacing:.22em;color:var(--sb);margin-bottom:12px;}
+  .sl-pattern-text{font-family:var(--mono);font-size:11px;color:var(--text);line-height:1.9;letter-spacing:.05em;}
+  .sl-priority-step{display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--text);line-height:1.6;align-items:flex-start;}
+  .sl-priority-step:last-child{border-bottom:none;}
+  .sl-priority-n{color:var(--red);min-width:22px;font-size:8px;letter-spacing:.1em;flex-shrink:0;padding-top:2px;}
+  .sl-reset{text-align:center;padding:32px 0 48px;}
+
   .audit-upsell{border:1px solid rgba(255,51,51,.25);background:rgba(255,51,51,.04);padding:24px 20px;text-align:center;margin-bottom:48px;position:relative;}
   .audit-upsell::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);}
   .audit-upsell-label{font-family:var(--mono);font-size:8px;letter-spacing:.22em;color:var(--dim);margin-bottom:10px;}
@@ -295,7 +330,46 @@
           <strong>There's a deeper pattern behind this.</strong><br>
           And it's probably repeating across your content.
         </div>
-        <button class="reset-btn" onclick="resetScan()">RUN SECOND LAYER</button>
+        <button class="reset-btn" id="secondLayerBtn" onclick="runSecondLayer()">RUN SECOND LAYER</button>
+      </div>
+
+      <!-- SECOND LAYER RESULTS -->
+      <div class="hidden" id="secondLayerPhase">
+        <div class="sl-header">
+          <span class="sl-tag">// LAYER 2 — SYSTEMIC ANALYSIS</span>
+          <span class="sl-sub">Pattern behind the pattern. Full arc. Not one sentence — the whole structure.</span>
+        </div>
+
+        <div class="sl-arc-block">
+          <div class="sl-block-hdr">// TENSION ARC — FULL CONTENT MAP</div>
+          <div class="sl-arc-track" id="slArcTrack"></div>
+          <div class="sl-arc-legend">
+            <span class="sl-leg sl-leg-rise">▲ BUILDS</span>
+            <span class="sl-leg sl-leg-hold">— HOLDS</span>
+            <span class="sl-leg sl-leg-drop">▼ DECAYS</span>
+            <span class="sl-leg sl-leg-break">✕ BREAK</span>
+          </div>
+        </div>
+
+        <div class="sl-block">
+          <div class="sl-block-hdr">// SECONDARY FAILURE SIGNALS</div>
+          <div class="sl-signal-row" id="slSignal1"></div>
+          <div class="sl-signal-row" id="slSignal2"></div>
+        </div>
+
+        <div class="sl-pattern-block" id="slPatternBlock">
+          <div class="sl-pattern-label">// STRUCTURAL HABIT — THE REAL DIAGNOSIS</div>
+          <div class="sl-pattern-text" id="slPatternText"></div>
+        </div>
+
+        <div class="sl-block">
+          <div class="sl-block-hdr">// REWRITE PRIORITY ORDER — FULL PIECE</div>
+          <div id="slPrioritySteps"></div>
+        </div>
+
+        <div class="sl-reset">
+          <button class="reset-btn" onclick="resetScan()">CLEAR — RUN NEW SCAN</button>
+        </div>
       </div>
 
       <!-- AUDIT UPSELL -->
@@ -904,6 +978,168 @@ async function submitEmail() {
   }, 800);
 }
 
+function runSecondLayer() {
+  if (!currentResult || !document.getElementById('contentInput').value.trim()) return;
+
+  const btn = document.getElementById('secondLayerBtn');
+  btn.disabled = true;
+  btn.textContent = 'ANALYZING...';
+
+  const content = document.getElementById('contentInput').value.trim();
+  const layer1BreakLine = currentResult.breakLine;
+  const layer1FailureType = currentResult.failureType;
+
+  setTimeout(() => {
+    const result = analyzeSecondLayer(content, layer1BreakLine, layer1FailureType);
+    renderSecondLayer(result);
+    btn.textContent = 'LAYER 2 COMPLETE';
+  }, 2200);
+}
+
+function analyzeSecondLayer(text, layer1BreakLine, layer1FailureType) {
+  const sentences = tokenize(text);
+  const scores = sentences.map((s, i) => scoreSentence(s, i, sentences.length));
+
+  // Build tension arc — classify each sentence as rise/hold/drop/break
+  const layer1Idx = sentences.findIndex(s => s.includes(layer1BreakLine.substring(0, 30)));
+  const arcNodes = sentences.map((s, i) => {
+    const score = scores[i];
+    const prev = scores[i - 1] || score;
+    if (i === layer1Idx) return 'break';
+    if (score < 15) return 'rise';
+    if (score < 25) return 'hold';
+    if (score >= 25 && score < prev + 5) return 'drop';
+    return 'drop';
+  });
+
+  // Find two secondary failure signals — exclude layer1 failure type and layer1 index
+  const secondaryScores = scores.map((s, i) => i === layer1Idx ? 0 : s);
+  const sorted = [...secondaryScores].map((s,i) => ({s,i})).sort((a,b) => b.s - a.s);
+  const sig1Idx = sorted[0]?.i ?? 0;
+  const sig2Idx = sorted.find(x => {
+    const frac1 = sig1Idx / Math.max(sentences.length-1,1);
+    const frac2 = x.i / Math.max(sentences.length-1,1);
+    return Math.abs(frac1 - frac2) > 0.2 && x.i !== sig1Idx;
+  })?.i ?? (sorted[1]?.i ?? 0);
+
+  const sig1Type = classifyFailure(sentences[sig1Idx], sig1Idx, sentences.length, scores);
+  const sig2Type = classifyFailure(sentences[sig2Idx], sig2Idx, sentences.length, scores);
+
+  // Structural habit — based on arc pattern
+  const dropCount = arcNodes.filter(n => n === 'drop').length;
+  const riseCount = arcNodes.filter(n => n === 'rise').length;
+  const dropRatio = dropCount / Math.max(sentences.length, 1);
+
+  const structuralHabits = {
+    front_loaded: `You write strongest at the start and lose confidence as the piece progresses. The opening is where you're clearest — by the midpoint you're managing the reader instead of leading them. Every piece you write follows this same arc until you learn to sustain pressure past the hook.`,
+    retreat_pattern: `You build tension and then retreat from it. Not once — repeatedly across this piece. The pattern is: strong statement, then immediate qualification. You're undercutting yourself before the reader gets a chance to push back. This is a trust issue, not a writing issue.`,
+    middle_collapse: `Your content has strong endpoints and a collapsed middle. The hook works. The close attempts. Everything between them loses pressure steadily. You're not losing readers at one moment — you're bleeding them across the entire body of the piece.`,
+    overloaded_close: `You compress too much into the final third. The opening is clean and the close is congested. You're trying to recover lost ground at the end instead of maintaining it throughout. The reader who reaches your CTA is already carrying too much to act.`,
+    even_decay: `The tension in this piece decays at a consistent rate from sentence two onward. There is no single catastrophic break — just a slow bleed. This is harder to diagnose and harder to fix because nothing looks obviously wrong. Everything is slightly wrong.`
+  };
+
+  let habit;
+  if (riseCount > dropCount && layer1Idx > sentences.length * 0.5) habit = structuralHabits.front_loaded;
+  else if (dropRatio > 0.5 && riseCount > 1) habit = structuralHabits.retreat_pattern;
+  else if (layer1Idx > sentences.length * 0.25 && layer1Idx < sentences.length * 0.65) habit = structuralHabits.middle_collapse;
+  else if (layer1Idx >= sentences.length * 0.65) habit = structuralHabits.overloaded_close;
+  else habit = structuralHabits.even_decay;
+
+  // Priority order — full piece rewrite sequence
+  const priorities = buildPriorityOrder(layer1FailureType, sig1Type, sig2Type, arcNodes, sentences.length);
+
+  return { arcNodes, sentences, layer1Idx, sig1Idx, sig1Type, sig2Idx, sig2Type, habit, priorities, scores };
+}
+
+function buildPriorityOrder(l1Type, s1Type, s2Type, arcNodes, total) {
+  const priorities = [];
+
+  // P1 — always fix the hook arc first if front-loaded decay
+  const earlyDrops = arcNodes.slice(0, Math.floor(total * 0.3)).filter(n => n === 'drop').length;
+  if (earlyDrops > 0) {
+    priorities.push(`Rebuild the opening sequence first. Tension is decaying before the midpoint — everything after it is operating at reduced power.`);
+  } else {
+    priorities.push(`The opening sequence holds. Begin your rewrite at the first decay node — identified in the arc above — not at the hook.`);
+  }
+
+  // P2 — based on secondary signal 1
+  const p2Map = {
+    'HOOK COLLAPSE': `Rewrite the first sentence last — after the body is fixed. Hook rewrites done in isolation rarely survive contact with what follows them.`,
+    'CLARITY FAILURE': `Go through the piece and replace every abstract noun with the specific thing you mean. Do this before any structural changes.`,
+    'PROMISE_GAP': `Locate every claim in the piece and add one concrete proof element directly after it. Do not move the claim — add the evidence.`,
+    'HESITATION SPIKE': `Do a single pass removing every hedge word. Read what remains. That version is closer to what you should be publishing.`,
+    'OVERLOAD ZONE': `Find the three longest sentences. Cut each one in half. This alone will reduce drop-off across the piece.`,
+    'CTA COLLAPSE': `Write the CTA first in your next piece. Build backward from it. You're currently building toward a close you haven't decided on.`,
+    'TENSION DROP': `Identify every "but," "however," and "although" in the piece. Each one is a reversal. Decide which reversals are earning their place.`,
+    'AUTHORITY VOID': `Add one specific result, number, or named example to the weakest section of the piece — not the strongest. That's where authority is missing.`
+  };
+  priorities.push(p2Map[s1Type] || p2Map['CLARITY FAILURE']);
+
+  // P3 — based on secondary signal 2
+  priorities.push(p2Map[s2Type] || `Run the scanner on the rewritten version before publishing. The pattern will shift — a new break point will surface. Find it before your audience does.`);
+
+  // P4 — always the same closing directive
+  priorities.push(`Do not rewrite the entire piece at once. Fix in the order above. One change at a time. The piece that emerges will be structurally different from what you submitted — not just cleaner.`);
+
+  return priorities;
+}
+
+function renderSecondLayer(result) {
+  // Arc track
+  const track = document.getElementById('slArcTrack');
+  track.innerHTML = '';
+  const maxScore = Math.max(...result.scores, 1);
+  result.arcNodes.forEach((node, i) => {
+    const bar = document.createElement('div');
+    bar.className = 'sl-bar';
+    const fill = document.createElement('div');
+    fill.className = `sl-bar-fill ${node}`;
+    const heightPct = Math.max(20, Math.round((result.scores[i] / maxScore) * 100));
+    fill.style.height = heightPct + 'px';
+    const num = document.createElement('div');
+    num.className = 'sl-bar-num';
+    num.textContent = i + 1;
+    bar.appendChild(fill);
+    bar.appendChild(num);
+    track.appendChild(bar);
+  });
+
+  // Signal 1
+  const s1 = document.getElementById('slSignal1');
+  s1.innerHTML = `<span class="sl-signal-type">SIGNAL 01 / ${result.sig1Type}</span>
+    <div class="sl-signal-body">
+      <div class="sl-signal-title">Sentence ${result.sig1Idx + 1} — secondary break node</div>
+      <div class="sl-signal-desc">This sentence scored as the second highest risk point in the piece. It did not surface in Layer 1 because the primary break was worse. It is still draining conversion. The failure type is different from your primary break — meaning this piece has two separate structural problems running simultaneously.</div>
+    </div>`;
+
+  // Signal 2
+  const s2 = document.getElementById('slSignal2');
+  s2.innerHTML = `<span class="sl-signal-type">SIGNAL 02 / ${result.sig2Type}</span>
+    <div class="sl-signal-body">
+      <div class="sl-signal-title">Sentence ${result.sig2Idx + 1} — tertiary decay point</div>
+      <div class="sl-signal-desc">A third failure pattern is present at a structurally different position in the piece. By the time a reader reaches this sentence they have already absorbed two prior breaks. The cumulative effect is higher than any single signal suggests.</div>
+    </div>`;
+
+  // Structural habit
+  document.getElementById('slPatternText').textContent = result.habit;
+
+  // Priority steps
+  const steps = document.getElementById('slPrioritySteps');
+  steps.innerHTML = '';
+  result.priorities.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'sl-priority-step';
+    div.innerHTML = `<span class="sl-priority-n">${String(i+1).padStart(2,'0')} /</span><span>${esc(p)}</span>`;
+    steps.appendChild(div);
+  });
+
+  // Show second layer
+  show('secondLayerPhase');
+  setTimeout(() => {
+    document.getElementById('secondLayerPhase').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
 function resetScan() {
   currentResult = null;
   scanning = false;
@@ -921,10 +1157,13 @@ function resetScan() {
   hide('resultsPhase');
   hide('deeperBlock');
   hide('apiError');
+  hide('secondLayerPhase');
   show('inputPhase');
   const btn = document.getElementById('runBtn');
   btn.disabled = false;
-  btn.textContent = 'RUN SCAN'; 
+  btn.textContent = 'RUN SCAN';
+  const slBtn = document.getElementById('secondLayerBtn');
+  if (slBtn) { slBtn.disabled = false; slBtn.textContent = 'RUN SECOND LAYER'; }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 </script>
