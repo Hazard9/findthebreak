@@ -941,7 +941,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function submitCapture() {
+  async function submitCapture() {
     const name = document.getElementById('capture-name').value.trim();
     const email = document.getElementById('capture-email').value.trim();
     if (!email || !email.includes('@')) {
@@ -949,10 +949,20 @@
       return;
     }
 
-    // Replace with your Kit/ConvertKit form submission endpoint
-    // Example: POST to https://app.kit.com/forms/YOUR_FORM_ID/subscriptions
-    // For now, logs and shows thank you
-    console.log('Capture:', { name, email, score: totalScore, answers });
+    const formData = new FormData();
+    formData.append('email_address', email);
+    formData.append('first_name', name);
+    formData.append('fields[dod_score]', totalScore);
+
+    try {
+      await fetch('https://app.kit.com/forms/f817fe49d5/subscriptions', {
+        method: 'POST',
+        body: formData,
+        mode: 'no-cors'
+      });
+    } catch(e) {
+      // no-cors won't throw on success — proceed regardless
+    }
 
     document.getElementById('score-screen').classList.remove('active');
     document.getElementById('thankyou-screen').classList.add('active');
