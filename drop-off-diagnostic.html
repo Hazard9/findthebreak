@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drop-Off Diagnostic — Find Where You're Bleeding Attention</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0b;
+    --surface: #111114;
+    --surface2: #18181d;
+    --border: #2a2a35;
+    --border-active: #4a4a65;
+    --text: #e8e8f0;
+    --text-dim: #8888aa;
+    --text-muted: #4a4a65;
+    --accent: #c8b8ff;
+    --accent-dim: #7a6aaa;
+    --red: #ff4444;
+    --green: #44ffaa;
+    --scan: rgba(200,184,255,0.03);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRAIN */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* SCAN LINE */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -100%;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(transparent, var(--scan), transparent);
+    animation: scan 8s linear infinite;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  @keyframes scan {
+    0% { top: -40%; }
+    100% { top: 140%; }
+  }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* HEADER */
+  .header {
+    padding: 48px 0 0;
+    text-align: center;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .system-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .system-tag::before,
+  .system-tag::after {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .headline {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(28px, 6vw, 44px);
+    line-height: 1.15;
+    color: var(--text);
+    margin-bottom: 16px;
+    font-style: italic;
+  }
+
+  .headline em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .subhead {
+    font-size: 15px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    max-width: 480px;
+    margin: 0 auto 40px;
+  }
+
+  /* PROGRESS */
+  .progress-bar-wrap {
+    height: 2px;
+    background: var(--border);
+    margin-bottom: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 12px var(--accent-dim);
+  }
+
+  .progress-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-align: right;
+    margin-bottom: 8px;
+  }
+
+  /* QUESTION BLOCK */
+  .question-block {
+    display: none;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .question-block.active {
+    display: block;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .q-number {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.2em;
+    margin-bottom: 16px;
+  }
+
+  .q-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(18px, 4vw, 24px);
+    line-height: 1.4;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .q-sub {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 32px;
+    line-height: 1.5;
+  }
+
+  /* OPTIONS */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .option {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    text-align: left;
+  }
+
+  .option:hover {
+    border-color: var(--border-active);
+    background: var(--surface2);
+  }
+
+  .option.selected {
+    border-color: var(--accent);
+    background: rgba(200,184,255,0.06);
+  }
+
+  .option-key {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    min-width: 20px;
+    padding-top: 2px;
+    transition: color 0.2s;
+  }
+
+  .option.selected .option-key {
+    color: var(--accent);
+  }
+
+  .option-text {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    transition: color 0.2s;
+  }
+
+  .option.selected .option-text {
+    color: var(--text);
+  }
+
+  /* NAV */
+  .q-nav {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 32px;
+    gap: 12px;
+  }
+
+  .btn-next {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--bg);
+    background: var(--accent);
+    border: none;
+    padding: 14px 28px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .btn-next.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .btn-next:hover {
+    background: var(--text);
+  }
+
+  /* SCORE SCREEN */
+  .score-screen {
+    display: none;
+    animation: fadeUp 0.6s ease both;
+    padding: 40px 0;
+  }
+
+  .score-screen.active { display: block; }
+
+  .score-meter {
+    margin: 0 auto 40px;
+    position: relative;
+  }
+
+  .score-label-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    margin-bottom: 8px;
+  }
+
+  .score-track {
+    height: 6px;
+    background: var(--border);
+    border-radius: 0;
+    overflow: hidden;
+  }
+
+  .score-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
+  }
+
+  .score-fill.critical { background: var(--red); box-shadow: 0 0 16px rgba(255,68,68,0.4); }
+  .score-fill.moderate { background: #ffaa44; box-shadow: 0 0 16px rgba(255,170,68,0.4); }
+  .score-fill.functional { background: var(--green); box-shadow: 0 0 16px rgba(68,255,170,0.4); }
+
+  .score-number {
+    font-family: 'DM Serif Display', serif;
+    font-size: 72px;
+    line-height: 1;
+    margin: 32px 0 8px;
+    font-style: italic;
+  }
+
+  .score-number.critical { color: var(--red); }
+  .score-number.moderate { color: #ffaa44; }
+  .score-number.functional { color: var(--green); }
+
+  .score-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .score-diagnosis {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 24px;
+    margin-bottom: 32px;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .score-diagnosis p {
+    font-size: 15px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  .score-diagnosis p + p {
+    margin-top: 12px;
+  }
+
+  .score-diagnosis strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .locked-section {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 28px;
+    border-radius: 4px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .locked-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 60%, var(--surface2));
+  }
+
+  .locked-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    filter: blur(3px);
+    opacity: 0.5;
+    user-select: none;
+  }
+
+  .locked-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .locked-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-dim);
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  .locked-text {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .locked-overlay-label {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    white-space: nowrap;
+    z-index: 2;
+  }
+
+  /* CAPTURE FORM */
+  .capture-section {
+    margin-bottom: 48px;
+  }
+
+  .capture-headline {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    margin-bottom: 8px;
+    font-style: italic;
+  }
+
+  .capture-sub {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  .capture-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .form-field {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 14px 18px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  .form-field::placeholder { color: var(--text-muted); }
+
+  .form-field:focus { border-color: var(--border-active); }
+
+  .btn-capture {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    padding: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+    width: 100%;
+  }
+
+  .btn-capture:hover { background: var(--text); }
+
+  .form-note {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 4px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  /* THANK YOU */
+  .thankyou-screen {
+    display: none;
+    text-align: center;
+    padding: 60px 0;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .thankyou-screen.active { display: block; }
+
+  .thankyou-icon {
+    font-size: 40px;
+    margin-bottom: 24px;
+    display: block;
+  }
+
+  .thankyou-headline {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    font-style: italic;
+    margin-bottom: 12px;
+  }
+
+  .thankyou-sub {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    max-width: 400px;
+    margin: 0 auto 32px;
+  }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 40px 0;
+  }
+
+  /* FOOTER */
+  .footer {
+    padding: 32px 0 48px;
+    text-align: center;
+  }
+
+  .footer-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+  }
+
+  /* UTILITY */
+  .hidden { display: none !important; }
+
+  @media (max-width: 480px) {
+    .header { padding: 32px 0 0; }
+    .score-number { font-size: 56px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header" id="header-section">
+    <div class="system-tag">Drop-Off Detection System</div>
+    <h1 class="headline">You're getting views.<br><em>Something is breaking</em> before the sale.</h1>
+    <p class="subhead">8 questions. 3 minutes. You'll know the exact layer where your audience stops moving — and what it's actually costing you.</p>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quiz-section">
+    <div class="progress-label" id="progress-label">QUESTION 1 OF 8</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+
+    <!-- Q1 -->
+    <div class="question-block active" id="q1">
+      <div class="q-number">01 / 08</div>
+      <div class="q-text">What type of content are you primarily creating?</div>
+      <div class="q-sub">Pick the one that drives most of your traffic right now.</div>
+      <div class="options">
+        <div class="option" data-q="1" data-v="1" onclick="selectOption(this)">
+          <span class="option-key">A</span>
+          <span class="option-text">Long-form video (YouTube, course content)</span>
+        </div>
+        <div class="option" data-q="1" data-v="1" onclick="selectOption(this)">
+          <span class="option-key">B</span>
+          <span class="option-text">Short-form video (TikTok, Reels, Shorts)</span>
+        </div>
+        <div class="option" data-q="1" data-v="2" onclick="selectOption(this)">
+          <span class="option-key">C</span>
+          <span class="option-text">Written content (newsletter, blog, Twitter/X)</span>
+        </div>
+        <div class="option" data-q="1" data-v="2" onclick="selectOption(this)">
+          <span class="option-key">D</span>
+          <span class="option-text">Sales pages / landing pages / funnels</span>
+        </div>
+      </div>
+      <div class="q-nav">
+        <button class="btn-next" id="next1" onclick="nextQuestion(1)">NEXT →</button>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="question-block" id="q2">
+      <div class="q-number">02 / 08</div>
+      <div class="q-text">Where does your traffic actually go after they see your content?</div>
+      <div class="q-sub">The honest answer — not the intended one.</div>
+      <div class="options">
+        <div class="option" data-q="2" data-v="2" onclick="selectOption(this)">
+          <span class="option-key">A</span>
+          <span class="option-text">Nowhere. They watch or read and leave.</span>
+        </div>
+        <div class="option" data-q="2" data-v="1" onclick="selectOption(this)">
+          <span class="option-key">B</span>
+          <span class="option-text">My profile or bio link — but very few click.</span>
+        </div>
+        <div class="option" data-q="2" data-v="1" onclick="selectOption(this)">
+          <span class="option-key">C</span>
+          <span class="option-text">A landing page — but conversion is low.</span>
+        </div>
+        <div class="option" data-q="2" data-v="0" onclick="selectOption(this)">
+          <span class="option-key">D</span>
+          <span class="option-text">Directly to a product or offer — some buy.</span>
+        </div>
+      </div>
+      <div class="q-nav">
+        <button class="btn-next" id="next2" onclick="nextQuestion(2)">NEXT →</button>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="question-block" id="q3">
+      <div class="q-number">03 / 08</div>
+      <div class="q-text">When someone lands on your offer page or email, what typically happens?</div>
+      <div class="q-sub">Be specific. This is where most people bleed.</div>
+      <div class="options">
+        <div class="option" data-q="3" data-v="2" onclick="selectOption(this)">
+          <span class="option-key">A</span>
+          <span class="option-text">They leave within seconds. High bounce rate.</span>
+        </div>
+        <div class="option" data-q="3" data-v="2" onclick="selectOption(this)">
+          <span class="option-key">B</span>
+          <span class="option-text">They scroll partway and stop. Don't reach the CTA.</span>
+        </div>
+        <div class="option" data-q="3" data-v="1" onclick="selectOption(this)">
+          <span class="option-key">C</span>
+          <span class="option-text">They reach the CTA but don't click.</span>
+        </div>
+        <div class="option" data-q="3" data-v="0" onclick="selectOption(this)">
+          <span class="option-key">D</span>
+          <span class="option-text">They click but abandon at checkout.</span>
+        </div>
+      </div>
+      <div class="q-nav">
+        <button class="btn-next" id="next3" onclick="nextQuestion(3)">NEXT →</button>
+      </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="question-block" id="q4">
+      <div class="q-number">04 / 08</div>
+      <div class="q-text">How clear is the one thing you're asking your audience to do next?</div>
+      <div class="q-sub">One CTA. Not two. Not three.</div>
+      <div class="options">
+        <div class="option" data-q="4" data-v="2" onclick="selectOption(this)">
+          <span class="option-key">A</span>
+          <span class="option-text">I have multiple CTAs — follow, subscribe, buy, share.</span>
+        </div>
+        <div class="option" data-q="4" data-v="2" onclick="selectOption(this)">
+          <span class="option-key">B</span>
+          <span class="option-text">I have one CTA but I'm not sure it's the right one.</span>
+        </div>
+        <div class="option" data-q="4" data-v="1" onclick="selectOption(this)">
+          <span class="option-key">C</span>
+          <span class="option-text">One clear CTA — but the language around it feels weak.</span>
+        </div>
+        <div class="option" data-q="4" data-v="0" onclick="selectOption(this)">
+          <span class="option-key">D</span>
+          <span class="option-text">One CTA, clear, positioned correctly. Low clicks anyway.</span>
+        </div>
+      </div>
+      <div class="q-nav">
+        <button class="btn-next" id="next4" onclick="nextQuestion(4)">NEXT →</button>
+      </div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="question-block" id="q5">
+      <div class="q-number">05 / 08</div>
+      <div class="q-text">When someone first encounters your content, how fast does it earn their attention?</div>
+      <div class="q-sub">The first 3 seconds decide everything.</div>
+      <div class="options">
+        <div class="option" data-q="5" data-v="2" onclick="selectOption(this)">
+          <span class="option-key">A</span>
+          <span class="option-text">Slow. I set up context before I get to the point.</span>
+        </div>
+        <div class="option" data-q="5" data-v="2" onclick="selectOption(this)">
+          <span class="option-key">B</span>
+          <span class="option-text">I don't know — I've never really analyzed it.</span>
+        </div>
+        <div class="option" data-q="5" data-v="1" onclick="selectOption(this)">
+          <span class="option-key">C</span>
+          <span class="option-text">I try to hook fast, but retention still drops early.</span>
+        </div>
+        <div class="option" data-q="5" data-v="0" onclick="selectOption(this)">
+          <span class="option-key">D</span>
+          <span class="option-text">Strong hooks. Good early retention. Problem is downstream.</span>
+        </div>
+      </div>
+      <div class="q-nav">
+        <button class="btn-next" id="next5" onclick="nextQuestion(5)">NEXT →</button>
+      </div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="question-block" id="q6">
+      <div class="q-number">06 / 08</div>
+      <div class="q-text">How would you describe the gap between your views and your revenue?</div>
+      <div class="q-sub">No judgment. Just precision.</div>
+      <div class="options">
+        <div class="option" data-q="6" data-v="2" onclick="selectOption(this)">
+          <span class="option-key">A</span>
+          <span class="option-text">Massive. Thousands of views. Near-zero revenue.</span>
+        </div>
+        <div class="option" data-q="6" data-v="2" onclick="selectOption(this)">
+          <span class="option-key">B</span>
+          <span class="option-text">Big. Decent engagement. Sales are rare and random.</span>
+        </div>
+        <div class="option" data-q="6" data-v="1" onclick="selectOption(this)">
+          <span class="option-key">C</span>
+          <span class="option-text">Moderate. Some conversion but well below what it should be.</span>
+        </div>
+        <div class="option" data-q="6" data-v="0" onclick="selectOption(this)">
+          <span class="option-key">D</span>
+          <span class="option-text">Small. I convert okay — just want to tighten the leak.</span>
+        </div>
+      </div>
+      <div class="q-nav">
+        <button class="btn-next" id="next6" onclick="nextQuestion(6)">NEXT →</button>
+      </div>
+    </div>
+
+    <!-- Q7 -->
+    <div class="question-block" id="q7">
+      <div class="q-number">07 / 08</div>
+      <div class="q-text">Do you have an email list — and is it actually doing anything?</div>
+      <div class="q-sub">Subscribers don't count. Active ones do.</div>
+      <div class="options">
+        <div class="option" data-q="7" data-v="2" onclick="selectOption(this)">
+          <span class="option-key">A</span>
+          <span class="option-text">No list. All traffic is platform-dependent.</span>
+        </div>
+        <div class="option" data-q="7" data-v="2" onclick="selectOption(this)">
+          <span class="option-key">B</span>
+          <span class="option-text">I have a list but I barely email it.</span>
+        </div>
+        <div class="option" data-q="7" data-v="1" onclick="selectOption(this)">
+          <span class="option-key">C</span>
+          <span class="option-text">I email regularly — open rates are okay but clicks are low.</span>
+        </div>
+        <div class="option" data-q="7" data-v="0" onclick="selectOption(this)">
+          <span class="option-key">D</span>
+          <span class="option-text">Active list. Good opens. Sales are the missing piece.</span>
+        </div>
+      </div>
+      <div class="q-nav">
+        <button class="btn-next" id="next7" onclick="nextQuestion(7)">NEXT →</button>
+      </div>
+    </div>
+
+    <!-- Q8 -->
+    <div class="question-block" id="q8">
+      <div class="q-number">08 / 08</div>
+      <div class="q-text">What have you already tried to fix the conversion problem?</div>
+      <div class="q-sub">This tells me how deep the issue actually runs.</div>
+      <div class="options">
+        <div class="option" data-q="8" data-v="2" onclick="selectOption(this)">
+          <span class="option-key">A</span>
+          <span class="option-text">Nothing systematic. I've just kept posting and hoping.</span>
+        </div>
+        <div class="option" data-q="8" data-v="1" onclick="selectOption(this)">
+          <span class="option-key">B</span>
+          <span class="option-text">I've changed copy or design but nothing moved the needle.</span>
+        </div>
+        <div class="option" data-q="8" data-v="1" onclick="selectOption(this)">
+          <span class="option-key">C</span>
+          <span class="option-text">I've taken courses or read frameworks. Helped a little.</span>
+        </div>
+        <div class="option" data-q="8" data-v="0" onclick="selectOption(this)">
+          <span class="option-key">D</span>
+          <span class="option-text">I know the theory cold. Execution is where I'm stuck.</span>
+        </div>
+      </div>
+      <div class="q-nav">
+        <button class="btn-next" id="next8" onclick="calculateScore()">SEE MY RESULTS →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCORE SCREEN -->
+  <div class="score-screen" id="score-screen">
+    <div class="system-tag">Diagnostic Complete</div>
+
+    <div class="score-label-row">
+      <span>CONVERSION HEALTH</span>
+      <span id="score-pct-label">—</span>
+    </div>
+    <div class="score-track">
+      <div class="score-fill" id="score-fill"></div>
+    </div>
+
+    <div class="score-number" id="score-number">—</div>
+    <div class="score-title" id="score-title">—</div>
+
+    <div class="score-diagnosis" id="score-diagnosis">
+      <p id="diag-p1"></p>
+      <p id="diag-p2"></p>
+    </div>
+
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:0.15em;margin-bottom:12px;text-transform:uppercase;">What the full report unlocks:</div>
+    <div class="locked-section">
+      <div class="locked-items">
+        <div class="locked-item">
+          <div class="locked-dot"></div>
+          <div class="locked-text">The specific failure layer in your funnel — hook, bridge, CTA, or trust — identified by name with the exact fix mapped to your answers.</div>
+        </div>
+        <div class="locked-item">
+          <div class="locked-dot"></div>
+          <div class="locked-text">Your Conversion Leak Score with a breakdown of where each point was lost and why those points matter more than your view count.</div>
+        </div>
+        <div class="locked-item">
+          <div class="locked-dot"></div>
+          <div class="locked-text">A prioritized repair sequence — which layer to fix first, second, and third, based on where the drop actually happens.</div>
+        </div>
+        <div class="locked-item">
+          <div class="locked-dot"></div>
+          <div class="locked-text">The one rewrite that would move the needle fastest, based on your specific profile. Not a template. Not advice. A direction.</div>
+        </div>
+      </div>
+      <div class="locked-overlay-label">↑ unlocked when you enter your email</div>
+    </div>
+
+    <div class="capture-section">
+      <div class="capture-headline">Get your full diagnostic report.</div>
+      <div class="capture-sub">Enter your email and I'll send you the complete breakdown — your failure layer, your repair sequence, and your highest-leverage fix. No pitch. No upsell sequence. Just the read.</div>
+      <div class="capture-form">
+        <input class="form-field" type="text" id="capture-name" placeholder="First name" />
+        <input class="form-field" type="email" id="capture-email" placeholder="Your email address" />
+        <button class="btn-capture" onclick="submitCapture()">SEND MY FULL REPORT →</button>
+      </div>
+      <div class="form-note">No spam. One email. Your report and nothing else — unless you want more.</div>
+    </div>
+  </div>
+
+  <!-- THANK YOU -->
+  <div class="thankyou-screen" id="thankyou-screen">
+    <span class="thankyou-icon">◈</span>
+    <div class="thankyou-headline">Your report is on the way.</div>
+    <div class="thankyou-sub">Check your inbox in the next few minutes. The full breakdown — your failure layer, your score, your fix — will be waiting.<br><br>If you don't see it, check spam. It'll be there.</div>
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:0.1em;">— Drop-Off Detection System</div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-text">DROP-OFF DETECTION SYSTEM · POWERED BY THE CONVERSION DIAGNOSTIC FRAMEWORK</div>
+  </div>
+
+</div>
+
+<script>
+  const answers = {};
+  let totalScore = 0;
+
+  function selectOption(el) {
+    const q = el.getAttribute('data-q');
+    const v = parseInt(el.getAttribute('data-v'));
+    document.querySelectorAll(`[data-q="${q}"]`).forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    answers[q] = v;
+    const btn = document.getElementById(`next${q}`);
+    if (btn) btn.classList.add('visible');
+    // last question
+    if (q === '8') {
+      const btn8 = document.getElementById('next8');
+      if (btn8) btn8.classList.add('visible');
+    }
+  }
+
+  function nextQuestion(current) {
+    if (!answers[current]) return;
+    document.getElementById(`q${current}`).classList.remove('active');
+    const next = current + 1;
+    const nextEl = document.getElementById(`q${next}`);
+    if (nextEl) {
+      nextEl.classList.add('active');
+      updateProgress(next);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function updateProgress(q) {
+    const pct = ((q - 1) / 8) * 100;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-label').textContent = `QUESTION ${q} OF 8`;
+  }
+
+  function calculateScore() {
+    if (!answers[8]) return;
+    totalScore = Object.values(answers).reduce((a, b) => a + b, 0);
+
+    document.getElementById('quiz-section').style.display = 'none';
+    document.getElementById('header-section').style.display = 'none';
+
+    const screen = document.getElementById('score-screen');
+    screen.classList.add('active');
+
+    const maxScore = 16;
+    const pct = Math.round((totalScore / maxScore) * 100);
+    const healthPct = 100 - pct;
+
+    let tier, color, title, p1, p2;
+
+    if (totalScore >= 11) {
+      tier = 'critical';
+      title = 'CRITICAL LEAK DETECTED';
+      p1 = `Your funnel is losing people at <strong>multiple layers simultaneously</strong>. This isn't a copy problem or a design problem — it's a structural failure. The attention you're building never makes it to a moment where it can convert.`;
+      p2 = `The full report will show you which layer is bleeding hardest and what a first repair actually looks like. Most people in this tier fix one thing and see results within weeks.`;
+    } else if (totalScore >= 6) {
+      tier = 'moderate';
+      title = 'MODERATE DROP-OFF IDENTIFIED';
+      p1 = `You have the fundamentals but <strong>something specific is breaking the chain</strong> between attention and action. You're not losing people at the top — you're losing them somewhere in the middle, right before the moment that matters.`;
+      p2 = `The full report identifies the exact transition point where movement stops. This type of leak is the most fixable — and the fastest to recover from once you know where it is.`;
+    } else {
+      tier = 'functional';
+      title = 'FUNCTIONAL — WITH A SPECIFIC LEAK';
+      p1 = `Your system is working at a basic level, but there's <strong>one specific point of friction</strong> that's capping your conversion ceiling. You're not broken — you're just leaving a measurable amount on the table.`;
+      p2 = `The full report maps that ceiling and shows you the single highest-leverage move. At this tier, one surgical fix typically produces a disproportionate result.`;
+    }
+
+    document.getElementById('score-number').textContent = totalScore;
+    document.getElementById('score-number').className = `score-number ${tier}`;
+    document.getElementById('score-title').textContent = title;
+    document.getElementById('score-fill').className = `score-fill ${tier}`;
+    document.getElementById('score-pct-label').textContent = `${healthPct}% HEALTH`;
+    document.getElementById('diag-p1').innerHTML = p1;
+    document.getElementById('diag-p2').innerHTML = p2;
+
+    setTimeout(() => {
+      document.getElementById('score-fill').style.width = healthPct + '%';
+    }, 100);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function submitCapture() {
+    const name = document.getElementById('capture-name').value.trim();
+    const email = document.getElementById('capture-email').value.trim();
+    if (!email || !email.includes('@')) {
+      document.getElementById('capture-email').style.borderColor = 'var(--red)';
+      return;
+    }
+
+    // Replace with your Kit/ConvertKit form submission endpoint
+    // Example: POST to https://app.kit.com/forms/YOUR_FORM_ID/subscriptions
+    // For now, logs and shows thank you
+    console.log('Capture:', { name, email, score: totalScore, answers });
+
+    document.getElementById('score-screen').classList.remove('active');
+    document.getElementById('thankyou-screen').classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
