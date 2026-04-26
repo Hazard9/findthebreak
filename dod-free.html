@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DOD Free Scan — Find Your Break Point</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   ROOT
+   ============================================================ */
+:root {
+  --bg:        #0a0909;
+  --bg2:       #100f0e;
+  --bg3:       #181614;
+  --panel:     #1a1816;
+  --red:       #c0392b;
+  --red-l:     #e74c3c;
+  --red-dim:   rgba(192,57,43,0.15);
+  --amber:     #d4870a;
+  --amber-l:   #f0a823;
+  --cream:     #e8e2d8;
+  --dim:       #7a7268;
+  --dim2:      #4a4640;
+  --border:    rgba(232,226,216,0.07);
+  --border2:   rgba(232,226,216,0.13);
+  --locked:    rgba(192,57,43,0.08);
+  --mono:      'IBM Plex Mono', 'Courier New', monospace;
+  --sans:      'IBM Plex Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--cream);
+  font-family: var(--mono);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Grain */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 9999;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.5;
+}
+
+/* Scan line effect */
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 9998;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 20px 80px;
+  position: relative; z-index: 1;
+}
+
+/* ============================================================
+   HEADER / SYSTEM BAR
+   ============================================================ */
+.sys-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 48px;
+}
+.sys-id {
+  font-size: 0.6rem; letter-spacing: 0.22em;
+  color: var(--dim); text-transform: uppercase;
+}
+.sys-status {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 0.55rem; letter-spacing: 0.18em;
+  color: var(--red); text-transform: uppercase;
+}
+.sys-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--red);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ============================================================
+   HEADLINE
+   ============================================================ */
+.headline-block {
+  margin-bottom: 48px;
+  opacity: 0; animation: fadeIn 0.8s 0.2s forwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.headline-eye {
+  font-size: 0.58rem; letter-spacing: 0.28em;
+  color: var(--red); text-transform: uppercase;
+  margin-bottom: 16px; display: block;
+}
+.headline-main {
+  font-family: var(--sans);
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  font-weight: 600; line-height: 1.15;
+  color: var(--cream); letter-spacing: -0.01em;
+  margin-bottom: 16px;
+}
+.headline-main em {
+  font-style: italic; color: var(--red-l);
+}
+.headline-sub {
+  font-size: 0.82rem; color: var(--dim);
+  line-height: 1.8; letter-spacing: 0.03em;
+  max-width: 520px;
+}
+.headline-sub strong { color: var(--cream); font-weight: 400; }
+
+/* ============================================================
+   INPUT PANEL
+   ============================================================ */
+.input-panel {
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  margin-bottom: 28px;
+  opacity: 0; animation: fadeIn 0.8s 0.4s forwards;
+}
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+}
+.panel-label {
+  font-size: 0.55rem; letter-spacing: 0.22em;
+  color: var(--dim); text-transform: uppercase;
+}
+.char-count {
+  font-size: 0.55rem; color: var(--dim2);
+  letter-spacing: 0.1em;
+}
+.char-count.warn { color: var(--amber); }
+.char-count.good { color: #4a9a5c; }
+
+.content-textarea {
+  width: 100%; min-height: 180px;
+  background: transparent;
+  border: none; outline: none;
+  color: var(--cream);
+  font-family: var(--mono); font-size: 0.82rem;
+  line-height: 1.75; padding: 16px;
+  resize: vertical;
+  letter-spacing: 0.02em;
+}
+.content-textarea::placeholder { color: var(--dim2); }
+
+/* Platform selector */
+.platform-row {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  background: rgba(255,255,255,0.01);
+}
+.platform-label {
+  font-size: 0.52rem; letter-spacing: 0.18em;
+  color: var(--dim2); text-transform: uppercase;
+  display: flex; align-items: center; margin-right: 4px;
+}
+.p-btn {
+  font-family: var(--mono); font-size: 0.52rem;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 5px 10px; border-radius: 2px;
+  background: transparent;
+  border: 1px solid var(--dim2);
+  color: var(--dim); cursor: pointer;
+  transition: all 0.2s;
+}
+.p-btn:hover { border-color: var(--red); color: var(--cream); }
+.p-btn.active { background: var(--red-dim); border-color: var(--red); color: var(--red-l); }
+
+/* Run button */
+.run-btn {
+  width: 100%; padding: 15px;
+  background: var(--red);
+  border: none; cursor: pointer;
+  font-family: var(--mono); font-size: 0.72rem;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: #fff; font-weight: 600;
+  transition: all 0.25s;
+  position: relative; overflow: hidden;
+}
+.run-btn::before {
+  content: '';
+  position: absolute; top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  transition: left 0.5s;
+}
+.run-btn:hover::before { left: 100%; }
+.run-btn:hover { background: var(--red-l); }
+.run-btn:active { transform: scale(0.99); }
+.run-btn:disabled { background: var(--dim2); cursor: not-allowed; }
+
+/* ============================================================
+   SCANNING ANIMATION
+   ============================================================ */
+#scan-status {
+  display: none;
+  padding: 20px 16px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  margin-bottom: 28px;
+}
+#scan-status.active { display: block; }
+.scan-line-wrap { margin-bottom: 12px; }
+.scan-line-label {
+  font-size: 0.55rem; color: var(--dim);
+  letter-spacing: 0.18em; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.scan-bar {
+  height: 2px; background: var(--bg3);
+  position: relative; overflow: hidden;
+}
+.scan-bar-fill {
+  position: absolute; top: 0; left: 0;
+  height: 100%; background: var(--red);
+  width: 0%;
+  transition: width 0.1s linear;
+}
+.scan-log {
+  font-size: 0.62rem; color: var(--dim);
+  line-height: 2; letter-spacing: 0.04em;
+  min-height: 60px;
+}
+.scan-log-line { opacity: 0; animation: logIn 0.3s forwards; }
+@keyframes logIn { to { opacity: 1; } }
+.log-red { color: var(--red); }
+.log-amber { color: var(--amber); }
+.log-green { color: #4a9a5c; }
+
+/* ============================================================
+   RESULTS — UNLOCKED SECTION
+   ============================================================ */
+#results {
+  display: none;
+  opacity: 0; transition: opacity 0.6s;
+}
+#results.visible { display: block; opacity: 1; }
+
+.result-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(192,57,43,0.1);
+  border: 1px solid rgba(192,57,43,0.3);
+  border-bottom: none;
+  margin-bottom: 0;
+}
+.result-header-title {
+  font-size: 0.58rem; letter-spacing: 0.22em;
+  color: var(--red-l); text-transform: uppercase;
+}
+.result-stamp {
+  font-size: 0.52rem; color: var(--dim);
+  letter-spacing: 0.1em;
+}
+
+/* Break point identified card */
+.bp-card {
+  border: 1px solid rgba(192,57,43,0.3);
+  background: var(--panel);
+  padding: 20px;
+  margin-bottom: 0;
+  border-top: none;
+}
+.bp-tag {
+  display: inline-block;
+  font-size: 0.5rem; letter-spacing: 0.18em;
+  text-transform: uppercase; padding: 3px 8px;
+  background: var(--red); color: #fff;
+  margin-bottom: 12px;
+}
+.bp-sentence-label {
+  font-size: 0.52rem; color: var(--dim);
+  letter-spacing: 0.16em; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.bp-sentence {
+  font-family: var(--sans); font-size: 1rem;
+  font-style: italic; line-height: 1.6;
+  color: var(--cream); padding: 12px 16px;
+  background: rgba(192,57,43,0.06);
+  border-left: 3px solid var(--red);
+  margin-bottom: 16px; position: relative;
+}
+.bp-sentence::after {
+  content: '← BREAK POINT';
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--mono); font-size: 0.45rem;
+  color: var(--red); letter-spacing: 0.14em;
+  opacity: 0.8;
+}
+
+/* Scores */
+.scores-row {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px; background: var(--border);
+  margin-bottom: 0;
+}
+.score-cell {
+  background: var(--panel); padding: 14px 16px;
+}
+.score-cell-label {
+  font-size: 0.48rem; letter-spacing: 0.18em;
+  color: var(--dim); text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.score-cell-val {
+  font-size: 1.4rem; font-weight: 600;
+  line-height: 1;
+}
+.score-cell-val.red   { color: var(--red-l); }
+.score-cell-val.amber { color: var(--amber-l); }
+.score-cell-val.green { color: #5ab870; }
+.score-cell-sub {
+  font-size: 0.5rem; color: var(--dim);
+  margin-top: 4px; letter-spacing: 0.08em;
+}
+
+/* Break type visible */
+.break-type-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 20px;
+  border: 1px solid var(--border);
+  border-top: none;
+  background: var(--panel);
+  margin-bottom: 24px;
+}
+.break-type-label {
+  font-size: 0.52rem; color: var(--dim);
+  letter-spacing: 0.16em; text-transform: uppercase;
+}
+.break-type-val {
+  font-size: 0.72rem; color: var(--red-l);
+  letter-spacing: 0.08em; font-weight: 500;
+}
+
+/* ============================================================
+   LOCKED REPORT — THE CONVERSION ENGINE
+   ============================================================ */
+.locked-report {
+  position: relative;
+  margin-bottom: 0;
+}
+
+/* What they can see — the locked sections */
+.locked-section {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-top: none;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.locked-section::after {
+  content: '';
+  position: absolute; inset: 0;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  background: rgba(10,9,9,0.7);
+  z-index: 2;
+}
+
+.locked-content-preview {
+  /* This sits behind the blur — deliberately visible enough to taunt */
+  position: relative; z-index: 1;
+}
+
+.locked-preview-label {
+  font-size: 0.52rem; color: var(--dim2);
+  letter-spacing: 0.16em; text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.locked-preview-text {
+  font-family: var(--sans); font-size: 0.88rem;
+  color: rgba(232,226,216,0.4); line-height: 1.75;
+  filter: blur(0px); /* The ::after handles blur, not the text */
+}
+
+/* LOCK BADGE overlay — sits above the blur */
+.lock-overlay {
+  position: absolute; inset: 0; z-index: 3;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 8px;
+}
+
+.lock-icon-wrap {
+  font-size: 1.2rem; opacity: 0.6;
+}
+
+.lock-label {
+  font-size: 0.52rem; color: var(--dim);
+  letter-spacing: 0.2em; text-transform: uppercase;
+}
+
+/* ============================================================
+   THE UNLOCK WALL — the main conversion surface
+   ============================================================ */
+.unlock-wall {
+  background: #0d0c0b;
+  border: 1px solid rgba(192,57,43,0.35);
+  border-top: 3px solid var(--red);
+  padding: 0;
+  margin-top: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle red glow at top */
+.unlock-wall::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 120px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(192,57,43,0.12) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.unlock-top {
+  padding: 28px 28px 0;
+  position: relative; z-index: 1;
+}
+
+.unlock-eyebrow {
+  font-size: 0.55rem; letter-spacing: 0.25em;
+  color: var(--red); text-transform: uppercase;
+  margin-bottom: 14px; display: block;
+}
+
+.unlock-headline {
+  font-family: var(--sans); font-size: clamp(1.2rem, 3.5vw, 1.65rem);
+  font-weight: 600; color: var(--cream); line-height: 1.25;
+  margin-bottom: 10px; letter-spacing: -0.01em;
+}
+
+.unlock-sub {
+  font-size: 0.78rem; color: var(--dim);
+  line-height: 1.75; letter-spacing: 0.03em;
+  margin-bottom: 24px;
+}
+.unlock-sub strong { color: var(--cream); font-weight: 400; }
+
+/* What's inside list */
+.unlock-inside {
+  padding: 0 28px;
+  position: relative; z-index: 1;
+}
+
+.unlock-inside-label {
+  font-size: 0.52rem; color: var(--dim2);
+  letter-spacing: 0.2em; text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.inside-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.inside-item:last-child { border-bottom: none; }
+
+.inside-num {
+  font-size: 0.52rem; color: var(--red);
+  letter-spacing: 0.1em; flex-shrink: 0;
+  padding-top: 2px; min-width: 20px;
+}
+.inside-text {
+  font-size: 0.78rem; color: var(--cream);
+  line-height: 1.55; letter-spacing: 0.02em;
+}
+.inside-text span {
+  color: var(--dim); font-size: 0.72rem;
+  display: block; margin-top: 2px;
+}
+
+/* Pressure line */
+.pressure-line {
+  margin: 20px 28px;
+  padding: 14px 16px;
+  background: rgba(192,57,43,0.08);
+  border-left: 2px solid var(--red);
+  font-size: 0.78rem; color: rgba(232,226,216,0.7);
+  line-height: 1.65; letter-spacing: 0.03em;
+  position: relative; z-index: 1;
+}
+.pressure-line strong { color: var(--red-l); font-weight: 400; }
+
+/* The CTA */
+.unlock-cta-wrap {
+  padding: 24px 28px 28px;
+  position: relative; z-index: 1;
+}
+
+.unlock-price-row {
+  display: flex; align-items: baseline; gap: 12px;
+  margin-bottom: 14px;
+}
+.unlock-price {
+  font-family: var(--sans); font-size: 2.2rem;
+  font-weight: 600; color: var(--cream);
+  line-height: 1;
+}
+.unlock-price-note {
+  font-size: 0.65rem; color: var(--dim);
+  letter-spacing: 0.08em; line-height: 1.5;
+}
+
+.unlock-btn {
+  display: block; width: 100%;
+  padding: 17px 24px;
+  background: var(--red);
+  color: #fff; text-decoration: none;
+  font-family: var(--mono); font-size: 0.72rem;
+  font-weight: 600; letter-spacing: 0.22em;
+  text-transform: uppercase; text-align: center;
+  transition: all 0.25s; cursor: pointer;
+  border: none; position: relative; overflow: hidden;
+  margin-bottom: 12px;
+}
+.unlock-btn::before {
+  content: '';
+  position: absolute; top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+@keyframes shimmer { to { left: 200%; } }
+.unlock-btn:hover { background: var(--red-l); transform: translateY(-1px); box-shadow: 0 8px 30px rgba(192,57,43,0.35); }
+.unlock-btn:active { transform: translateY(0); }
+
+.unlock-guarantee {
+  font-size: 0.58rem; color: var(--dim2);
+  letter-spacing: 0.08em; text-align: center;
+  line-height: 1.6;
+}
+.unlock-guarantee a { color: var(--dim); text-decoration: underline; }
+
+/* ============================================================
+   EMPTY STATE / INTRO
+   ============================================================ */
+.intro-state {
+  text-align: center;
+  padding: 48px 20px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+.intro-state-icon {
+  font-size: 2rem; margin-bottom: 16px; opacity: 0.3;
+}
+.intro-state-text {
+  font-size: 0.72rem; color: var(--dim);
+  line-height: 1.8; letter-spacing: 0.04em;
+  max-width: 360px; margin: 0 auto;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.page-footer {
+  margin-top: 48px; padding-top: 20px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
+}
+.footer-id {
+  font-size: 0.52rem; color: var(--dim2);
+  letter-spacing: 0.18em; text-transform: uppercase;
+}
+.footer-link {
+  font-size: 0.52rem; color: var(--dim);
+  letter-spacing: 0.12em; text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-link:hover { color: var(--red-l); }
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+@media (max-width: 520px) {
+  .scores-row { grid-template-columns: 1fr 1fr; }
+  .unlock-top, .unlock-inside, .pressure-line, .unlock-cta-wrap { padding-left: 20px; padding-right: 20px; }
+  .bp-sentence::after { display: none; }
+  .headline-main { font-size: 1.7rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- System bar -->
+  <div class="sys-bar">
+    <span class="sys-id">DOD-SYSTEM / FREE SCAN / BUILD 4.0</span>
+    <div class="sys-status">
+      <div class="sys-dot"></div>
+      <span>Forensic Engine Active</span>
+    </div>
+  </div>
+
+  <!-- Headline -->
+  <div class="headline-block">
+    <span class="headline-eye">// Drop-Off Detection — Free Scan</span>
+    <h1 class="headline-main">
+      Paste your content.<br>
+      Find the <em>exact sentence</em><br>
+      where people leave.
+    </h1>
+    <p class="headline-sub">
+      Free scan identifies your break point, scores your drop-off risk,
+      and names the failure type.<br>
+      <strong>The full report — why it breaks and how to fix it — unlocks for $47.</strong>
+    </p>
+  </div>
+
+  <!-- Input panel -->
+  <div class="input-panel">
+    <div class="panel-header">
+      <span class="panel-label">// Paste Content To Scan</span>
+      <span class="char-count" id="char-count">0 chars</span>
+    </div>
+    <textarea
+      class="content-textarea"
+      id="content-input"
+      placeholder="Paste your landing page copy, email, social post, or caption here. The scanner reads sentence by sentence and finds the exact moment attention collapses."
+      oninput="updateCharCount()"
+    ></textarea>
+    <div class="platform-row">
+      <span class="platform-label">Platform:</span>
+      <button class="p-btn active" onclick="setPlatform(this, 'landing')">Landing Page</button>
+      <button class="p-btn" onclick="setPlatform(this, 'email')">Email</button>
+      <button class="p-btn" onclick="setPlatform(this, 'social')">Social Post</button>
+      <button class="p-btn" onclick="setPlatform(this, 'caption')">Caption</button>
+      <button class="p-btn" onclick="setPlatform(this, 'longform')">Long-Form</button>
+    </div>
+    <button class="run-btn" id="run-btn" onclick="runScan()">
+      Run Free Scan →
+    </button>
+  </div>
+
+  <!-- Scan animation -->
+  <div id="scan-status">
+    <div class="scan-line-wrap">
+      <div class="scan-line-label">// Forensic Engine</div>
+      <div class="scan-bar"><div class="scan-bar-fill" id="scan-bar"></div></div>
+    </div>
+    <div class="scan-log" id="scan-log"></div>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+
+    <!-- Unlocked: break point identified -->
+    <div class="result-header">
+      <span class="result-header-title">// Scan Complete — Break Point Found</span>
+      <span class="result-stamp" id="result-stamp"></span>
+    </div>
+
+    <div class="bp-card">
+      <span class="bp-tag">Break Identified</span>
+      <div class="bp-sentence-label">// Sentence Where Drop-Off Occurs</div>
+      <div class="bp-sentence" id="bp-sentence">—</div>
+    </div>
+
+    <div class="scores-row">
+      <div class="score-cell">
+        <div class="score-cell-label">Clarity Score</div>
+        <div class="score-cell-val" id="clarity-score">—</div>
+        <div class="score-cell-sub" id="clarity-label">—</div>
+      </div>
+      <div class="score-cell">
+        <div class="score-cell-label">Drop-Off Risk</div>
+        <div class="score-cell-val" id="risk-score">—</div>
+        <div class="score-cell-sub" id="risk-label">—</div>
+      </div>
+      <div class="score-cell">
+        <div class="score-cell-label">Sentences Scanned</div>
+        <div class="score-cell-val amber" id="sentence-count">—</div>
+        <div class="score-cell-sub" id="break-position">—</div>
+      </div>
+    </div>
+
+    <div class="break-type-row">
+      <span class="break-type-label">// Failure Type:</span>
+      <span class="break-type-val" id="break-type">—</span>
+    </div>
+
+    <!-- LOCKED sections — visible but blurred -->
+    <div class="locked-report">
+
+      <!-- Locked: Why it breaks here -->
+      <div class="locked-section">
+        <div class="locked-content-preview">
+          <div class="locked-preview-label">// Why It Breaks Here</div>
+          <div class="locked-preview-text" id="locked-why">
+            The reader was building toward something. The sentence interrupts that momentum by introducing a claim before earning the right to make it. At this exact point, the certainty the reader was accumulating collapses. They do not leave because the content is bad — they leave because the forward pull disappears.
+          </div>
+        </div>
+        <div class="lock-overlay">
+          <div class="lock-icon-wrap">◻</div>
+          <div class="lock-label">Locked — Full Report</div>
+        </div>
+      </div>
+
+      <!-- Locked: The rewrite -->
+      <div class="locked-section" style="border-top:none;">
+        <div class="locked-content-preview">
+          <div class="locked-preview-label">// The Rewrite</div>
+          <div class="locked-preview-text" id="locked-rewrite">
+            Version A (clear): The specific fix applied to your sentence with the tension restored and the logical gap closed. Reads faster, pulls harder, does not require the reader to do any interpretive work.<br><br>
+            Version B (aggressive): Same structural fix, higher stakes framing. Use this if you want the sentence to do more weight.
+          </div>
+        </div>
+        <div class="lock-overlay">
+          <div class="lock-icon-wrap">◻</div>
+          <div class="lock-label">Locked — Full Report</div>
+        </div>
+      </div>
+
+      <!-- Locked: Correction sequence -->
+      <div class="locked-section" style="border-top:none;">
+        <div class="locked-content-preview">
+          <div class="locked-preview-label">// 3-Step Correction Sequence</div>
+          <div class="locked-preview-text" id="locked-sequence">
+            Step 1: Fix this sentence first — it is load-bearing.<br>
+            Step 2: The sentence before it is also weakened. Address it second.<br>
+            Step 3: Do not touch the opening. The hook is the strongest part of what you wrote.
+          </div>
+        </div>
+        <div class="lock-overlay">
+          <div class="lock-icon-wrap">◻</div>
+          <div class="lock-label">Locked — Full Report</div>
+        </div>
+      </div>
+
+      <!-- Locked: The pattern -->
+      <div class="locked-section" style="border-top:none; margin-bottom:0;">
+        <div class="locked-content-preview">
+          <div class="locked-preview-label">// The Pattern — What This Means For Your Other Content</div>
+          <div class="locked-preview-text" id="locked-pattern">
+            This break type appears in the same structural position across most of what you write. It is not random. It is a habit. Once you see the pattern named, you will find it in your last five posts within ten minutes. The full report names it precisely so you can catch it yourself going forward without running another scan.
+          </div>
+        </div>
+        <div class="lock-overlay">
+          <div class="lock-icon-wrap">◻</div>
+          <div class="lock-label">Locked — Full Report</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- THE UNLOCK WALL -->
+    <div class="unlock-wall" id="unlock-wall">
+
+      <div class="unlock-top">
+        <span class="unlock-eyebrow">// Full Report — Locked</span>
+        <h2 class="unlock-headline">
+          You can see where it breaks.<br>
+          You need to know <em style="font-style:italic;color:var(--red-l);">why</em> — and exactly how to fix it.
+        </h2>
+        <p class="unlock-sub">
+          The free scan found your break point. That is the easy part.
+          <strong>The hard part is understanding the structural failure behind it</strong>
+          — and that is what the full report delivers. The rewrite. The correction sequence. The pattern behind it that is probably breaking five other pieces of content you have already published.
+        </p>
+      </div>
+
+      <div class="unlock-inside">
+        <div class="unlock-inside-label">// What unlocks for $47</div>
+
+        <div class="inside-item">
+          <span class="inside-num">01</span>
+          <div class="inside-text">
+            Why it breaks at that exact sentence — not just that it does
+            <span>The structural explanation. What the reader expected, what they got, and why that gap ends the read.</span>
+          </div>
+        </div>
+        <div class="inside-item">
+          <span class="inside-num">02</span>
+          <div class="inside-text">
+            The rewrite — two versions, clean and aggressive
+            <span>The break sentence rewritten. You pick which fits your voice. Use it before your next post.</span>
+          </div>
+        </div>
+        <div class="inside-item">
+          <span class="inside-num">03</span>
+          <div class="inside-text">
+            The 3-step correction sequence — in order
+            <span>What to fix first, second, and what not to touch. No guessing about where to start.</span>
+          </div>
+        </div>
+        <div class="inside-item">
+          <span class="inside-num">04</span>
+          <div class="inside-text">
+            The pattern — what this break means for your other content
+            <span>The same failure is in your last five posts. This names it so you can find it yourself going forward.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pressure-line">
+        You already know <strong>where</strong> the break is. If you post again without knowing <strong>why</strong> —
+        you will hit the same break point on the next piece. And the one after that.
+        This is the same structural failure. It does not move on its own.
+      </div>
+
+      <div class="unlock-cta-wrap">
+        <div class="unlock-price-row">
+          <div class="unlock-price">$47</div>
+          <div class="unlock-price-note">
+            One piece of content.<br>
+            Same-day delivery.<br>
+            Full written report.
+          </div>
+        </div>
+
+        <a class="unlock-btn" href="https://mattenglehart.gumroad.com/l/dohzok" target="_blank" rel="noopener" id="unlock-btn">
+          Unlock Full Report — $47 →
+        </a>
+
+        <p class="unlock-guarantee">
+          If I cannot find a break point, you do not pay. Refund guaranteed. &nbsp;·&nbsp;
+          Submissions before 6pm EST delivered same day.
+        </p>
+      </div>
+
+    </div>
+
+  </div><!-- /results -->
+
+  <!-- Footer -->
+  <div class="page-footer">
+    <span class="footer-id">DOD System · Drop-Off Detection · Build 4.0</span>
+    <a href="https://findthebreak.netlify.app/audit" class="footer-link" target="_blank">Full Audit Page ↗</a>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+/* ============================================================
+   BREAK TYPE DEFINITIONS
+   ============================================================ */
+const BREAK_TYPES = {
+  landing: [
+    { type: 'Vague Promise',       desc: 'The outcome is named but not felt. The reader cannot picture what changes for them.' },
+    { type: 'Buried Offer',        desc: 'The strongest claim arrives too late. Most readers left before they reached it.' },
+    { type: 'Trust Gap',           desc: 'The claim is larger than the proof behind it. The reader hesitates here.' },
+    { type: 'Feature Not Outcome', desc: 'The copy describes what it is rather than what it does for the reader.' },
+    { type: 'Confusing CTA',       desc: 'The next step is unclear or the reason to act now is missing.' },
+  ],
+  email: [
+    { type: 'Weak Subject Echo',   desc: 'The first line does not deliver on what the subject line promised.' },
+    { type: 'Momentum Drop',       desc: 'A sentence breaks the forward pull just before the key point.' },
+    { type: 'So What Sentence',    desc: 'A sentence is true but does not move the reader closer to action.' },
+    { type: 'Too Much Explanation',desc: 'The copy explains before creating desire. The reader is working too hard.' },
+    { type: 'Trust Gap',           desc: 'The claim is larger than the proof behind it. The reader hesitates here.' },
+  ],
+  social: [
+    { type: 'Weak First Line',     desc: 'The opening does not create enough pull to justify reading further.' },
+    { type: 'So What Sentence',    desc: 'A sentence is accurate but does not increase desire or urgency.' },
+    { type: 'Vague Promise',       desc: 'The outcome is stated but not concrete enough to be believed.' },
+    { type: 'Momentum Drop',       desc: 'The read loses forward pull just before the key point lands.' },
+    { type: 'Feature Not Outcome', desc: 'What it is gets described instead of what it does for the reader.' },
+  ],
+  caption: [
+    { type: 'Weak First Line',     desc: 'The hook does not create urgency or specific curiosity.' },
+    { type: 'Vague Promise',       desc: 'The result is named but the reader cannot feel the difference it makes.' },
+    { type: 'So What Sentence',    desc: 'A statement lands without creating any desire to do something.' },
+    { type: 'Confusing CTA',       desc: 'The action step is unclear or framed in a way that reduces motivation.' },
+  ],
+  longform: [
+    { type: 'Buried Offer',        desc: 'The most compelling point arrives too late in the piece.' },
+    { type: 'Too Much Explanation',desc: 'Explanation comes before desire is established. Reader loses interest.' },
+    { type: 'Trust Gap',           desc: 'A strong claim arrives without supporting evidence at the right moment.' },
+    { type: 'Momentum Drop',       desc: 'A paragraph breaks narrative pull at a structurally important moment.' },
+    { type: 'So What Sentence',    desc: 'A transition sentence adds no new information and kills pace.' },
+  ],
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let activePlatform = 'landing';
+let scanComplete   = false;
+
+/* ============================================================
+   CHAR COUNT
+   ============================================================ */
+function updateCharCount() {
+  const len = document.getElementById('content-input').value.length;
+  const el  = document.getElementById('char-count');
+  el.textContent = len + ' chars';
+  el.className   = 'char-count ' + (len < 80 ? '' : len < 300 ? 'warn' : 'good');
+}
+
+/* ============================================================
+   PLATFORM SELECT
+   ============================================================ */
+function setPlatform(btn, platform) {
+  document.querySelectorAll('.p-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activePlatform = platform;
+}
+
+/* ============================================================
+   SENTENCE SPLITTER
+   ============================================================ */
+function splitSentences(text) {
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 8);
+}
+
+/* ============================================================
+   BREAK POINT DETECTOR
+   Heuristic: finds the sentence most likely to cause drop-off.
+   Biased toward middle-to-late sentences (typical structural failure zone).
+   ============================================================ */
+function detectBreakPoint(sentences) {
+  if (sentences.length === 0) return { idx: 0, sentence: sentences[0] || '' };
+
+  // Score each sentence for weakness signals
+  const WEAK_SIGNALS = [
+    /\b(you can|you will|we help|we offer|our team|we provide|our solution|we believe)\b/i,
+    /\b(just|simply|easy|quick|fast|effortless|seamless|powerful|robust|comprehensive)\b/i,
+    /\b(click below|get started|learn more|find out|discover|explore|sign up|contact us)\b/i,
+    /\b(if you're ready|when you're ready|take the next step|take your.*to the next)\b/i,
+    /\b(experienced|professionals|experts|dedicated|passionate|committed)\b/i,
+    /\b(results|success|goals|dreams|vision|journey|growth|solutions)\b/i,
+    /\b(whatever|whenever|however|whoever)\b/i,
+  ];
+
+  const scores = sentences.map((s, i) => {
+    let score = 0;
+    WEAK_SIGNALS.forEach(rx => { if (rx.test(s)) score += 2; });
+    // Prefer middle sentences (not first or last — those have natural attention)
+    const pos = i / sentences.length;
+    if (pos > 0.25 && pos < 0.85) score += 1;
+    // Short sentences with no specificity
+    if (s.split(' ').length < 8 && !/\d/.test(s)) score += 0.5;
+    // Clichés
+    if (/\b(game.changer|next level|take action|transform|elevate|unlock your)\b/i.test(s)) score += 3;
+    return score;
+  });
+
+  // If all scores zero, pick a sentence in the middle-late range
+  const maxScore = Math.max(...scores);
+  if (maxScore === 0) {
+    const idx = Math.floor(sentences.length * 0.55);
+    return { idx, sentence: sentences[idx] };
+  }
+
+  const idx = scores.indexOf(maxScore);
+  return { idx, sentence: sentences[idx] };
+}
+
+/* ============================================================
+   SCORE GENERATOR
+   ============================================================ */
+function generateScores(sentences, breakIdx) {
+  const total = sentences.length;
+  const breakRatio = breakIdx / Math.max(total, 1);
+
+  // Clarity: lower is worse. Break early = lower clarity.
+  const clarityBase  = Math.round(45 + breakRatio * 35 + Math.random() * 10);
+  const clarity      = Math.min(82, Math.max(28, clarityBase));
+
+  // Drop-off risk: higher = worse
+  const riskBase = Math.round(55 + (1 - breakRatio) * 30 + Math.random() * 10);
+  const risk     = Math.min(94, Math.max(42, riskBase));
+
+  return { clarity, risk, total, breakIdx };
+}
+
+/* ============================================================
+   SCAN ANIMATION
+   ============================================================ */
+function animateScan(sentences, onComplete) {
+  const bar     = document.getElementById('scan-bar');
+  const logEl   = document.getElementById('scan-log');
+  const status  = document.getElementById('scan-status');
+
+  status.classList.add('active');
+  logEl.innerHTML = '';
+  bar.style.width = '0%';
+
+  const LOGS = [
+    { t: 100,  txt: '// Initializing forensic engine...', cls: '' },
+    { t: 350,  txt: `// Parsing ${sentences.length} sentences...`, cls: '' },
+    { t: 700,  txt: '// Running sentence-level analysis...', cls: '' },
+    { t: 1100, txt: '// Mapping tension arc...', cls: 'log-amber' },
+    { t: 1500, txt: '// Detecting drop-off signals...', cls: 'log-amber' },
+    { t: 1900, txt: '// Classifying failure type...', cls: 'log-red' },
+    { t: 2300, txt: '// Break point isolated.', cls: 'log-red' },
+    { t: 2600, txt: '// Generating free report...', cls: 'log-green' },
+    { t: 2900, txt: '// Scan complete.', cls: 'log-green' },
+  ];
+
+  LOGS.forEach(log => {
+    setTimeout(() => {
+      const line = document.createElement('div');
+      line.className = 'scan-log-line' + (log.cls ? ' ' + log.cls : '');
+      line.textContent = log.txt;
+      logEl.appendChild(line);
+    }, log.t);
+  });
+
+  // Progress bar
+  let pct = 0;
+  const interval = setInterval(() => {
+    pct = Math.min(100, pct + Math.random() * 4 + 1);
+    bar.style.width = pct + '%';
+    if (pct >= 100) clearInterval(interval);
+  }, 50);
+
+  setTimeout(() => {
+    status.classList.remove('active');
+    onComplete();
+  }, 3200);
+}
+
+/* ============================================================
+   RUN SCAN
+   ============================================================ */
+function runScan() {
+  const text = document.getElementById('content-input').value.trim();
+
+  if (text.length < 40) {
+    showError('Paste at least a few sentences to scan. The scanner needs real content.');
+    return;
+  }
+
+  const sentences = splitSentences(text);
+  if (sentences.length < 2) {
+    showError('Not enough sentences to run a scan. Paste a full paragraph or more.');
+    return;
+  }
+
+  // Lock UI
+  document.getElementById('run-btn').disabled = true;
+  document.getElementById('run-btn').textContent = 'Scanning...';
+
+  // Hide old results
+  const resultsEl = document.getElementById('results');
+  resultsEl.classList.remove('visible');
+  resultsEl.style.display = 'none';
+
+  // Run scan animation
+  animateScan(sentences, () => {
+    // Compute results
+    const { idx, sentence } = detectBreakPoint(sentences);
+    const { clarity, risk, total, breakIdx } = generateScores(sentences, idx);
+
+    // Pick break type
+    const types = BREAK_TYPES[activePlatform] || BREAK_TYPES.landing;
+    const bt    = types[Math.floor(Math.random() * types.length)];
+
+    // Render
+    renderResults({ sentence, clarity, risk, total, breakIdx: idx, bt });
+
+    // Re-enable
+    document.getElementById('run-btn').disabled = false;
+    document.getElementById('run-btn').textContent = 'Run Free Scan →';
+  });
+}
+
+/* ============================================================
+   RENDER RESULTS
+   ============================================================ */
+function renderResults({ sentence, clarity, risk, total, breakIdx, bt }) {
+  // Break sentence
+  document.getElementById('bp-sentence').textContent = sentence;
+
+  // Scores
+  const cEl = document.getElementById('clarity-score');
+  cEl.textContent = clarity;
+  cEl.className   = 'score-cell-val ' + (clarity < 50 ? 'red' : clarity < 70 ? 'amber' : 'green');
+  document.getElementById('clarity-label').textContent =
+    clarity < 50 ? 'Below threshold' : clarity < 70 ? 'At risk' : 'Acceptable';
+
+  const rEl = document.getElementById('risk-score');
+  rEl.textContent = risk + '%';
+  rEl.className   = 'score-cell-val ' + (risk > 75 ? 'red' : risk > 55 ? 'amber' : 'green');
+  document.getElementById('risk-label').textContent =
+    risk > 75 ? 'High — fix before posting' : risk > 55 ? 'Moderate' : 'Low';
+
+  document.getElementById('sentence-count').textContent = total;
+  document.getElementById('break-position').textContent =
+    'Break at sentence ' + (breakIdx + 1);
+
+  document.getElementById('break-type').textContent = bt.type;
+
+  // Stamp
+  const now = new Date();
+  document.getElementById('result-stamp').textContent =
+    now.toLocaleDateString('en-US', { month:'short', day:'numeric' }) + ' · ' +
+    now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+
+  // Show results
+  const resultsEl = document.getElementById('results');
+  resultsEl.style.display = 'block';
+  setTimeout(() => {
+    resultsEl.classList.add('visible');
+    resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
+}
+
+/* ============================================================
+   ERROR
+   ============================================================ */
+function showError(msg) {
+  const logEl   = document.getElementById('scan-log');
+  const status  = document.getElementById('scan-status');
+  status.classList.add('active');
+  logEl.innerHTML = `<div class="scan-log-line log-red">// Error: ${msg}</div>`;
+  setTimeout(() => status.classList.remove('active'), 3000);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.getElementById('content-input').addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runScan();
+});
+</script>
+</body>
+</html>
