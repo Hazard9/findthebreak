@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Break Point Audit , Slide Sequences</title>
+<title>Break Point Audit — Slide Sequences</title>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -439,16 +439,9 @@ footer {
 
   <!-- Example selector -->
   <div class="ex-tabs">
-    <button class="ex-tab active" onclick="loadExample(0, this)">01 / Coaching</button>
-    <button class="ex-tab" onclick="loadExample(1, this)">02 / B2B SaaS</button>
-    <button class="ex-tab" onclick="loadExample(2, this)">03 / Newsletter</button>
-    <button class="ex-tab" onclick="loadExample(3, this)">04 / Digital Product</button>
-    <button class="ex-tab" onclick="loadExample(4, this)">05 / Agency</button>
-    <button class="ex-tab" onclick="loadExample(5, this)">06 / Personal Brand</button>
-    <button class="ex-tab" onclick="loadExample(6, this)">07 / Ecomm / DTC</button>
-    <button class="ex-tab" onclick="loadExample(7, this)">08 / Freelance Copy</button>
-    <button class="ex-tab" onclick="loadExample(8, this)">09 / SaaS Founder</button>
-    <button class="ex-tab" onclick="loadExample(9, this)">10 / Local Service</button>
+    <button class="ex-tab active" onclick="loadExample(0, this)">Ex 01 / Coaching</button>
+    <button class="ex-tab" onclick="loadExample(1, this)">Ex 02 / SaaS</button>
+    <button class="ex-tab" onclick="loadExample(2, this)">Ex 03 / Creator</button>
   </div>
 
   <!-- Carousel -->
@@ -459,7 +452,7 @@ footer {
         <!-- SLIDE 1 -->
         <div class="slide slide-1" id="slide-1">
           <div class="s1-top">
-            <span class="s1-tag">// Slide 01 of 03 , The Problem</span>
+            <span class="s1-tag">// Slide 01 of 03 — The Problem</span>
             <span class="s1-num" id="s1-type">Coaching Offer</span>
           </div>
           <div class="li-post">
@@ -481,7 +474,7 @@ footer {
         <!-- SLIDE 2 -->
         <div class="slide slide-2" id="slide-2">
           <div class="s2-top">
-            <span class="s2-tag">// Slide 02 of 03 , Why It Fails</span>
+            <span class="s2-tag">// Slide 02 of 03 — Why It Fails</span>
             <span class="s1-num">Diagnosis</span>
           </div>
           <div class="why-body">
@@ -498,7 +491,7 @@ footer {
         <!-- SLIDE 3 -->
         <div class="slide slide-3" id="slide-3">
           <div class="s3-top">
-            <span class="s3-tag">// Slide 03 of 03 , The Fix</span>
+            <span class="s3-tag">// Slide 03 of 03 — The Fix</span>
             <span class="s1-num">One Sentence Rewrite</span>
           </div>
           <div class="fix-body">
@@ -556,305 +549,56 @@ footer {
    why explanation, failure type, and the rewrite.
    ============================================================ */
 const EXAMPLES = [
-  // ── 01: COACHING OFFER ──────────────────────────────────
   {
-    label: 'Coaching',
-    avatar: 'ME', name: 'Marcus Evans',
-    role: 'Business Coach · helping founders scale',
-    type: 'Coaching Offer',
+    // ── EXAMPLE 01: COACHING OFFER ─────────────────────────
+    label:    'Coaching Offer',
+    avatar:   'ME',
+    name:     'Marcus Evans',
+    role:     'Business Coach · helping founders scale',
+    type:     'Coaching Offer',
+
+    // The full post with the break sentence split into parts
     postParts: [
-      { text: 'Three years ago I was working 70-hour weeks and barely breaking even.\n\nI made one shift and went from $4k months to $22k months in under a year.\n\nHere is what changed:\n\n', break: false },
-      { text: 'I started working with a coach who helped me identify the gaps in my business and gave me a proven system to scale consistently.', break: true },
-      { text: '\n\nIf you are ready to make the same shift, drop a comment below and I will share the details.', break: false },
+      { text: "Three years ago I was working 70-hour weeks and barely breaking even.\n\nI made one shift and went from $4k months to $22k months in under a year.\n\nHere is what changed:\n\n", break: false },
+      { text: "I started working with a coach who helped me identify the gaps in my business and gave me a proven system to scale consistently.", break: true },
+      { text: "\n\nIf you are ready to make the same shift, drop a comment below and I'll share the details.", break: false },
     ],
+
     breakLabelText: 'This is where the read ends',
-    whyEcho: '"...gave me a proven system to scale consistently."',
-    whyExplanation: 'The post opened with a specific number. Then landed on <strong>"identify the gaps"</strong> and <strong>"proven system."</strong> Both phrases are empty. The credibility built in the first two lines collapses in one sentence.',
-    whyType: 'Trust Gap',
-    fixBefore: 'I started working with a coach who helped me identify the gaps in my business and gave me a proven system to scale consistently.',
-    fixAfter: 'The first thing she did was show me exactly how much money I was leaving on the table by running sales calls wrong. One fix. Six weeks later I had my first $10k month.',
+
+    // Slide 2
+    whyEcho:       '"I started working with a coach who helped me identify the gaps in my business and gave me a proven system to scale consistently."',
+    whyExplanation: 'The post opened with a specific number. Then it landed on <strong>"identify the gaps" and "proven system."</strong> Both phrases are empty. The reader has seen them a hundred times. The moment they hit it, the credibility built in the first two lines collapses.',
+    whyType:       'Trust Gap',
+
+    // Slide 3
+    fixBefore: '"I started working with a coach who helped me identify the gaps in my business and gave me a proven system to scale consistently."',
+    fixAfter:  '"The first thing she did was show me exactly how much money I was leaving on the table by doing sales calls wrong. One fix. Six weeks later I had my first $10k month."',
   },
 
-  // ── 02: B2B SAAS ─────────────────────────────────────────
   {
-    label: 'B2B SaaS',
-    avatar: 'KL', name: 'Kira Lawson',
-    role: 'Founder at Flowstack · B2B SaaS',
-    type: 'B2B SaaS',
+    // ── EXAMPLE 02: B2B SAAS ───────────────────────────────
+    label:    'SaaS / B2B',
+    avatar:   'KL',
+    name:     'Kira Lawson',
+    role:     'Founder at Flowstack · B2B SaaS',
+    type:     'B2B SaaS',
+
     postParts: [
-      { text: 'We just crossed 500 paying customers.\n\nHere is what nobody tells you about early traction:\n\nYour first 10 customers are not your product validation. They are your positioning validation.\n\n', break: false },
-      { text: 'At Flowstack we focus on providing value to our customers through a seamless and intuitive experience that helps them achieve their goals faster.', break: true },
-      { text: '\n\nIf you are building in B2B, I am happy to share what worked for us. Drop a reply.', break: false },
+      { text: "We just crossed 500 paying customers.\n\nHere is what nobody tells you about early traction:\n\nYour first 10 customers are not your product validation. They are your positioning validation.\n\n", break: false },
+      { text: "At Flowstack we focus on providing value to our customers through a seamless and intuitive experience that helps them achieve their goals faster.", break: true },
+      { text: "\n\nIf you are building in B2B, I am happy to share what worked for us. Drop a reply.", break: false },
     ],
+
     breakLabelText: 'Drop-off happens here',
-    whyEcho: '"...seamless and intuitive experience that helps them achieve their goals faster."',
-    whyExplanation: 'The post was earning authority. Then it pivoted into <strong>corporate language that says nothing.</strong> Every SaaS company says this. The brain registers the shift from specific to generic and disengages.',
-    whyType: 'Feature Not Outcome',
-    fixBefore: 'At Flowstack we focus on providing value to our customers through a seamless and intuitive experience that helps them achieve their goals faster.',
-    fixAfter: 'At Flowstack, our customers stop switching between six tools. Everything they need to run a deal lives in one place. That is the only thing we care about building.',
+
+    whyEcho:       '"At Flowstack we focus on providing value to our customers through a seamless and intuitive experience."',
+    whyExplanation: 'The post was earning authority. Then it pivoted into <strong>corporate language that says nothing.</strong> "Providing value," "seamless," "intuitive." Every SaaS company says this. The reader\'s brain registers the shift from specific to generic and disengages.',
+    whyType:       'Feature Not Outcome',
+
+    fixBefore: '"At Flowstack we focus on providing value to our customers through a seamless and intuitive experience that helps them achieve their goals faster."',
+    fixAfter:  '"At Flowstack, our customers stop switching between six tools. Everything they need to run a deal is in one place. That is the only thing we care about building."',
   },
 
-  // ── 03: NEWSLETTER CREATOR ───────────────────────────────
   {
-    label: 'Newsletter',
-    avatar: 'DP', name: 'Dana Perez',
-    role: 'Newsletter Creator · 14k subscribers',
-    type: 'Newsletter Creator',
-    postParts: [
-      { text: 'Last week\'s email had a 54% open rate.\n\nNo paid ads. No big launch. Just one thing I changed in the subject line.\n\nThe difference between 20% and 50% open rates came down to one principle:\n\n', break: false },
-      { text: 'Consistency is the key. Showing up every week builds trust with your audience and over time they will start to open everything you send.', break: true },
-      { text: '\n\nI break down the exact formula in this week\'s issue. Link in bio.', break: false },
-    ],
-    breakLabelText: 'Reader drops before the link',
-    whyEcho: '"Consistency is the key. Showing up every week builds trust..."',
-    whyExplanation: 'The post promised a specific principle that doubled open rates. Then delivered a cliche everyone already believes. <strong>The reader came for the secret. They got a motivational caption.</strong> The link gets no clicks.',
-    whyType: 'So What Sentence',
-    fixBefore: 'Consistency is the key. Showing up every week builds trust with your audience and over time they will start to open everything you send.',
-    fixAfter: 'The principle is contrast. Readers open emails that feel different from the last five they received. I stopped explaining the content in subject lines and started creating a gap. Open rates went up 30% in three weeks.',
-  },
-
-  // ── 04: DIGITAL PRODUCT LAUNCH ───────────────────────────
-  {
-    label: 'Digital Product',
-    avatar: 'JT', name: 'James Thornton',
-    role: 'Course Creator · $0 to $120k online',
-    type: 'Digital Product',
-    postParts: [
-      { text: 'I launched my first course with zero audience and made $8,400 in the first week.\n\nNo email list. No ads. No social following.\n\nHere is the exact launch sequence I used:\n\n', break: false },
-      { text: 'Whether you are a complete beginner or an experienced professional, this method meets you where you are and takes you to the next level.', break: true },
-      { text: '\n\nI am posting the full breakdown tomorrow. Save this so you don\'t miss it.', break: false },
-    ],
-    breakLabelText: 'Specificity collapses here',
-    whyEcho: '"...meets you where you are and takes you to the next level."',
-    whyExplanation: 'The post was specific and electric. Then tried to speak to everyone. <strong>When you speak to everyone, you reach no one.</strong> The reader who was leaning in stops leaning.',
-    whyType: 'Vague Promise',
-    fixBefore: 'Whether you are a complete beginner or an experienced professional, this method meets you where you are and takes you to the next level.',
-    fixAfter: 'The only thing you need is one person who has already bought something from you, even if it was a $7 download. That is enough to build the launch sequence I used.',
-  },
-
-  // ── 05: AGENCY / LEAD GEN ────────────────────────────────
-  {
-    label: 'Agency',
-    avatar: 'RL', name: 'Rachel Liu',
-    role: 'Founder · Digital Marketing Agency',
-    type: 'Lead Gen Agency',
-    postParts: [
-      { text: 'We generated 340 qualified leads for a roofing company in 90 days.\n\nThey had tried three other agencies before us and got nothing.\n\nThe difference wasn\'t budget. It wasn\'t the platform.\n\n', break: false },
-      { text: 'Our team of experienced digital marketers is dedicated to delivering results that matter through our proprietary lead generation process.', break: true },
-      { text: '\n\nMessage me if you want to see if we are a fit for your business.', break: false },
-    ],
-    breakLabelText: 'Read ends before the CTA',
-    whyEcho: '"...dedicated to delivering results that matter through our proprietary lead generation process."',
-    whyExplanation: 'The case study was working. The reader was engaged. Then the copy shifted to agency brochure language. <strong>"Proprietary process" and "results that matter" say nothing specific.</strong> The hook was real. The pivot killed it.',
-    whyType: 'Trust Gap',
-    fixBefore: 'Our team of experienced digital marketers is dedicated to delivering results that matter through our proprietary lead generation process.',
-    fixAfter: 'The difference was one thing: we stopped targeting everyone in the zip code and started targeting homeowners whose roofs were over 12 years old. Specificity is the whole game.',
-  },
-
-  // ── 06: PERSONAL BRAND / MINDSET ─────────────────────────
-  {
-    label: 'Personal Brand',
-    avatar: 'AS', name: 'Alex Singh',
-    role: 'Executive Coach · LinkedIn Top Voice',
-    type: 'Personal Brand',
-    postParts: [
-      { text: 'I fired my highest-paying client last year.\n\n$14,000 a month. Gone.\n\nEvery person I told thought I was crazy. Here is why I did it and why I would do it again:\n\n', break: false },
-      { text: 'Sometimes in life and business you have to make the hard choices that align with your values and long-term vision, even when it is uncomfortable in the short term.', break: true },
-      { text: '\n\nThe full story is in my newsletter this Friday. Link in the first comment.', break: false },
-    ],
-    breakLabelText: 'Momentum dies right here',
-    whyEcho: '"...make the hard choices that align with your values and long-term vision."',
-    whyExplanation: 'The hook was specific and brave. The reader was invested. Then it delivered a generic lesson about values. <strong>The reader already knew that lesson.</strong> They came for the specific reason. They got a fortune cookie.',
-    whyType: 'So What Sentence',
-    fixBefore: 'Sometimes in life and business you have to make the hard choices that align with your values and long-term vision, even when it is uncomfortable in the short term.',
-    fixAfter: 'He wanted me to write content that I knew was misleading. Not illegal. Just dishonest. I told him on a Tuesday. He was gone by Thursday. My pipeline filled back up in six weeks.',
-  },
-
-  // ── 07: ECOMMERCE / DTC BRAND ────────────────────────────
-  {
-    label: 'Ecomm / DTC',
-    avatar: 'NW', name: 'Nia Walker',
-    role: 'Founder · Skincare Brand · 80k followers',
-    type: 'Ecommerce Brand',
-    postParts: [
-      { text: 'We sold out in 4 hours on launch day.\n\nNo influencer deals. No PR. Just a waitlist we built over 6 weeks.\n\nHere is exactly how we built 2,400 people on a waitlist before we had a single product photo:\n\n', break: false },
-      { text: 'We leverage the power of community and authentic storytelling to create meaningful connections with our customers and build lasting brand loyalty.', break: true },
-      { text: '\n\nThread below breaking down each step.', break: false },
-    ],
-    breakLabelText: 'This is where the scroll stops',
-    whyEcho: '"...leverage the power of community and authentic storytelling..."',
-    whyExplanation: '<strong>"Leverage," "authentic storytelling," "meaningful connections"</strong> are the most recycled phrases in brand marketing. The reader was ready to learn something real. The jargon signals there is nothing specific coming.',
-    whyType: 'Feature Not Outcome',
-    fixBefore: 'We leverage the power of community and authentic storytelling to create meaningful connections with our customers and build lasting brand loyalty.',
-    fixAfter: 'We posted one video a week of me making the formula in my kitchen and explaining why every other moisturizer on the market was lying about one ingredient. That was the whole strategy.',
-  },
-
-  // ── 08: FREELANCE COPYWRITER ─────────────────────────────
-  {
-    label: 'Freelance Copy',
-    avatar: 'CB', name: 'Chris Baxter',
-    role: 'Freelance Copywriter · Landing Pages',
-    type: 'Freelance Copywriter',
-    postParts: [
-      { text: 'My client\'s landing page was converting at 1.2%.\n\nI changed one headline and it went to 4.8% in two weeks.\n\nSame traffic. Same offer. Same price.\n\nThe one thing I changed:\n\n', break: false },
-      { text: 'Good copy speaks to your ideal customer\'s pain points and clearly communicates the unique value proposition of your offer in a compelling way.', break: true },
-      { text: '\n\nDM me "copy" if you want me to look at your page.', break: false },
-    ],
-    breakLabelText: 'Reader loses the thread here',
-    whyEcho: '"...speaks to your ideal customer\'s pain points and clearly communicates the unique value proposition..."',
-    whyExplanation: 'The post built perfect tension: same traffic, same offer, 4x conversion from one change. Then the explanation used <strong>copywriting jargon that copywriters use to avoid saying what they actually did.</strong> The reader wanted the answer. They got a definition.',
-    whyType: 'Buried Offer',
-    fixBefore: 'Good copy speaks to your ideal customer\'s pain points and clearly communicates the unique value proposition of your offer in a compelling way.',
-    fixAfter: 'The original headline said "High-Converting Email Sequences for Course Creators." I changed it to "Your email list is not the problem. Your welcome sequence is." That was it.',
-  },
-
-  // ── 09: SAAS FOUNDER / PRODUCT ───────────────────────────
-  {
-    label: 'SaaS Founder',
-    avatar: 'OB', name: 'Omar Bassett',
-    role: 'Co-Founder at Trackr · Project Tools',
-    type: 'SaaS Founder',
-    postParts: [
-      { text: 'We almost killed our company by building the wrong feature for 6 months.\n\n48 users asked for it. We said yes. We spent $60k building it.\n\nOnly 3 of those 48 users actually used it.\n\nHere is what we got wrong:\n\n', break: false },
-      { text: 'As a founder you need to listen to your customers and ensure that you are building a product that meets their needs and provides real value to their lives and workflows.', break: true },
-      { text: '\n\nThe real lesson is harder to hear. Sharing it tomorrow.', break: false },
-    ],
-    breakLabelText: 'Drop-off before the real lesson',
-    whyEcho: '"...listen to your customers and ensure that you are building a product that meets their needs..."',
-    whyExplanation: 'The setup was electric: $60k, 6 months, 3 users. The reader leaned in hard. Then the lesson was <strong>the most obvious startup advice ever written.</strong> The letdown is physical. They stop reading.',
-    whyType: 'So What Sentence',
-    fixBefore: 'As a founder you need to listen to your customers and ensure that you are building a product that meets their needs and provides real value to their lives and workflows.',
-    fixAfter: 'We confused "I want this feature" with "I will change my behavior to use this feature." Those are completely different things. We never asked the second question.',
-  },
-
-  // ── 10: LOCAL SERVICE BUSINESS ───────────────────────────
-  {
-    label: 'Local Service',
-    avatar: 'TM', name: 'Tony Marcello',
-    role: 'Owner · Marcello Home Services',
-    type: 'Local Service Business',
-    postParts: [
-      { text: 'We booked 22 new clients last month without spending a dollar on ads.\n\nEvery single one came from Google reviews.\n\nHere is the exact script I give every tech after every job so they actually get the review:\n\n', break: false },
-      { text: 'At Marcello Home Services we are committed to providing our customers with the highest quality service and ensuring their complete satisfaction with every visit.', break: true },
-      { text: '\n\nScript is in the comments. Save it before you keep scrolling.', break: false },
-    ],
-    breakLabelText: 'This is where they stop reading',
-    whyEcho: '"...committed to providing our customers with the highest quality service and ensuring their complete satisfaction..."',
-    whyExplanation: 'The post was specific and practical. Then the copy shifted to <strong>mission statement language that every local business uses.</strong> It erased all the credibility the post had built. The comment with the script gets ignored.',
-    whyType: 'Vague Promise',
-    fixBefore: 'At Marcello Home Services we are committed to providing our customers with the highest quality service and ensuring their complete satisfaction with every visit.',
-    fixAfter: 'The script is 27 words. The tech says it while packing up, before they leave the driveway. We went from 2 reviews a month to 19. Same team. Same jobs.',
-  },
-];
-
-/* ============================================================
-   STATE
-   ============================================================ */
-let currentEx    = 0;
-let currentSlide = 0;
-
-/* ============================================================
-   LOAD EXAMPLE
-   ============================================================ */
-function loadExample(idx, btn) {
-  currentEx    = idx;
-  currentSlide = 0;
-
-  document.querySelectorAll('.ex-tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-
-  const ex = EXAMPLES[idx];
-
-  // Slide 1
-  document.getElementById('s1-type').textContent      = ex.type;
-  document.getElementById('li-avatar').textContent    = ex.avatar;
-  document.getElementById('li-name').textContent      = ex.name;
-  document.getElementById('li-role').textContent      = ex.role;
-  document.getElementById('break-label-text').textContent = ex.breakLabelText;
-
-  // Build post body with highlight
-  const bodyEl = document.getElementById('li-body');
-  bodyEl.innerHTML = '';
-  ex.postParts.forEach(part => {
-    if (part.break) {
-      const span = document.createElement('span');
-      span.className = 'bp-text';
-      span.textContent = part.text;
-      bodyEl.appendChild(span);
-    } else {
-      bodyEl.appendChild(document.createTextNode(part.text));
-    }
-  });
-
-  // Slide 2
-  document.getElementById('why-echo').textContent        = ex.whyEcho;
-  document.getElementById('why-explanation').innerHTML   = ex.whyExplanation;
-  document.getElementById('why-type-val').textContent    = ex.whyType;
-
-  // Slide 3
-  document.getElementById('fix-before').textContent = ex.fixBefore;
-  document.getElementById('fix-after').textContent  = ex.fixAfter;
-
-  goTo(0);
-}
-
-/* ============================================================
-   CAROUSEL
-   ============================================================ */
-function goTo(idx) {
-  currentSlide = idx;
-  const inner = document.getElementById('carousel-inner');
-  // Each slide is 33.333% of the 300% wide inner
-  // So to show slide idx we translate by -(idx * 33.333%)
-  inner.style.transform = `translateX(-${idx * 33.3333}%)`;
-
-  // Pips
-  document.querySelectorAll('.pip').forEach((p, i) => {
-    p.classList.toggle('active', i === idx);
-  });
-
-  // Buttons
-  document.getElementById('btn-prev').disabled = idx === 0;
-  document.getElementById('btn-next').disabled = idx === 2;
-
-  // Info
-  const labels = ['Slide 1 , The Problem', 'Slide 2 , Why It Fails', 'Slide 3 , The Fix'];
-  document.getElementById('slide-info').textContent = labels[idx];
-}
-
-function navigate(dir) {
-  const next = currentSlide + dir;
-  if (next < 0 || next > 2) return;
-  goTo(next);
-}
-
-/* ============================================================
-   TOUCH SWIPE
-   ============================================================ */
-let touchStartX = 0;
-const carouselEl = document.querySelector('.carousel-track');
-
-carouselEl.addEventListener('touchstart', e => {
-  touchStartX = e.touches[0].clientX;
-}, { passive: true });
-
-carouselEl.addEventListener('touchend', e => {
-  const dx = e.changedTouches[0].clientX - touchStartX;
-  if (Math.abs(dx) > 44) navigate(dx < 0 ? 1 : -1);
-}, { passive: true });
-
-/* ============================================================
-   KEYBOARD
-   ============================================================ */
-document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowRight') navigate(1);
-  if (e.key === 'ArrowLeft')  navigate(-1);
-});
-
-/* ============================================================
-   INIT
-   ============================================================ */
-loadExample(0, document.querySelector('.ex-tab.active'));
-</script>
-</body>
-</html>
+    // ── EXAMPLE 03: CREATOR / NEWSLE
