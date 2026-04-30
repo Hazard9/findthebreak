@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DOD Revenue Dashboard</title>
+<style>
+body {
+  font-family: Arial;
+  background: #0d0d0d;
+  color: #ffffff;
+  padding: 20px;
+}
+h2 { border-bottom: 1px solid #333; padding-bottom: 5px; }
+.card {
+  background: #1a1a1a;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+input, textarea {
+  width: 100%;
+  margin: 5px 0;
+  padding: 8px;
+  background: #111;
+  color: white;
+  border: 1px solid #333;
+}
+button {
+  padding: 10px;
+  margin-top: 10px;
+  background: #8B0000;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<h1>DOD Revenue Engine</h1>
+
+<div class="card">
+<h2>Daily Targets</h2>
+<p>Posts: 2</p>
+<p>Comments: 10–20</p>
+<p>DMs: 10</p>
+<p>Conversations: <input type="number"></p>
+<p>Audits Sold: <input type="number"></p>
+<p>Revenue: <input type="number"></p>
+</div>
+
+<div class="card">
+<h2>Pipeline</h2>
+<textarea placeholder="Track leads here..."></textarea>
+</div>
+
+<div class="card">
+<h2>Execution Checklist</h2>
+<label><input type="checkbox"> Post #1</label><br>
+<label><input type="checkbox"> Post #2</label><br>
+<label><input type="checkbox"> 10 Comments</label><br>
+<label><input type="checkbox"> 10 DMs</label><br>
+<label><input type="checkbox"> Follow Ups</label>
+</div>
+
+<div class="card">
+<h2>Content Generator</h2>
+<button onclick="alert('Paste into ChatGPT: Content Mode: LinkedIn post')">LinkedIn Post</button>
+<button onclick="alert('Paste into ChatGPT: Content Mode: TikTok script')">TikTok Script</button>
+<button onclick="alert('Paste into ChatGPT: Outreach Mode: 10 DMs')">DM Generator</button>
+</div>
+
+</body>
+</html>
