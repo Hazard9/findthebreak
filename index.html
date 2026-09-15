@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DOD System — Drop-Off Detection</title>
+<title>RMOS Breakpoint Scan — Manager Communication Breakpoint</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -13,7 +13,7 @@
     --text:#c8cdd6;--dim:#4a5568;--accent:#e8f0fe;
     --red:#ff3333;--rd:rgba(255,51,51,0.1);
     --amber:#ffb700;--ad:rgba(255,183,0,0.1);
-    --green:#00e676;--sb:#4a90d9;
+    --green:#00e676;--sb:#4f8cff;
     --mono:'Share Tech Mono',monospace;
     --display:'Bebas Neue',sans-serif;
     --body:'Rajdhani',sans-serif;
@@ -201,7 +201,7 @@
 <body>
 
 <header class="hdr">
-  <span class="hdr-id">DOD-SYSTEM / BUILD 4.0 / FORENSIC ENGINE</span>
+  <span class="hdr-id">RMOS-BREAKPOINT-SCAN / BUILD 4.0 / FORENSIC ENGINE</span>
   <span class="hdr-t">DOD SYSTEM</span>
   <span class="hdr-s"><span class="dot"></span>ACTIVE</span>
 </header>
@@ -212,7 +212,7 @@
   <div class="hdiv"></div>
   <p class="hero-sub">
     Paste your content.<br>
-    The DOD System finds the exact line where they leave.<br>
+    The RMOS Breakpoint Scan finds the exact line where they leave.<br>
     Not a category. The actual sentence.
   </p>
 </section>
@@ -248,7 +248,7 @@
     <div class="term">
       <div class="tbar">
         <div class="tdots"><span></span><span></span><span></span></div>
-        DOD-SCANNER v4.0 — FORENSIC ANALYSIS
+        RMOS-BREAKPOINT-SCANNER v4.0 — FORENSIC ANALYSIS
       </div>
       <div class="tbody" id="termBody"></div>
     </div>
@@ -259,11 +259,11 @@
 
     <div class="break-reveal">
 
-      <!-- BREAK POINT — THE CORE MOMENT -->
+      <!-- RMOS BREAKPOINT — THE CORE MOMENT -->
       <div class="break-moment">
         <div class="break-moment-top">
           <div class="break-moment-label">
-            <span class="blink">&#9654;</span> BREAK POINT FOUND
+            <span class="blink">&#9654;</span> RMOS BREAKPOINT FOUND
           </div>
           <span class="break-type-badge" id="failureTypeBadge"></span>
         </div>
@@ -317,10 +317,10 @@
               <input class="einput" type="email" id="emailInput" placeholder="Enter your email address">
               <button type="button" class="esbmt" id="submitBtn" onclick="submitEmail()">SEND ME THE FULL CORRECTION</button>
             </div>
-            <div class="egate-sub">Full DOD System access. No spam. Redirects immediately.</div>
+            <div class="egate-sub">Full RMOS Breakpoint Scan access. No spam. Redirects immediately.</div>
           </div>
 
-          <div class="cta-foot">// DOD-SYSTEM / MATTENGLEHART.COM //</div>
+          <div class="cta-foot">// RMOS-BREAKPOINT-SCAN / MATTENGLEHART.COM //</div>
         </div>
       </div>
 
@@ -376,7 +376,7 @@
       <div class="audit-upsell">
         <div class="audit-upsell-label">// WANT THE FULL BREAKDOWN?</div>
         <div class="audit-upsell-text">The scanner finds the break.<br>The audit maps the fix, the rewrite, and the pattern — written out for your specific content.</div>
-        <a class="audit-upsell-btn" href="https://findthebreak.netlify.app/audit" target="_blank">GET THE $47 AUDIT ↗</a>
+        <a class="audit-upsell-btn" href="https://rmos-breakpoint-scan.netlify.app/audit" target="_blank">GET THE $47 AUDIT ↗</a>
       </div>
 
     </div>
@@ -884,7 +884,7 @@ async function runScan() {
       currentResult = parsed;
       document.getElementById('termBody').innerHTML = '';
       setTimeout(() => {
-        addTermLine(`BREAK POINT LOCATED — ${parsed.failureType}`, true);
+        addTermLine(`RMOS BREAKPOINT LOCATED — ${parsed.failureType}`, true);
         setTimeout(() => renderResults(parsed), 700);
       }, 200);
     } catch(err) {
@@ -1168,7 +1168,7 @@ function resetScan() {
 }
 </script>
  <a href="https://www.producthunt.com/products/dod-system?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-dod-system" target="_blank">
-<img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=dod-system&theme=dark" alt="DOD System on Product Hunt" style="width:250px;height:54px;" />
+<img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=dod-system&theme=dark" alt="RMOS Breakpoint Scan on Product Hunt" style="width:250px;height:54px;" />
  </a>
 </body>
 </html>
