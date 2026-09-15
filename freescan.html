@@ -314,7 +314,7 @@ body::after {
   margin-bottom: 16px; position: relative;
 }
 .bp-sentence::after {
-  content: '← BREAK POINT';
+  content: '← RMOS BREAKPOINT';
   position: absolute; right: 12px; top: 50%;
   transform: translateY(-50%);
   font-family: var(--mono); font-size: 0.45rem;
@@ -623,7 +623,7 @@ body::after {
 
   <!-- System bar -->
   <div class="sys-bar">
-    <span class="sys-id">DOD-SYSTEM / FREE SCAN / BUILD 4.0</span>
+    <span class="sys-id">RMOS-BREAKPOINT-SCAN / FREE SCAN / BUILD 4.0</span>
     <div class="sys-status">
       <div class="sys-dot"></div>
       <span>Forensic Engine Active</span>
@@ -632,7 +632,7 @@ body::after {
 
   <!-- Headline -->
   <div class="headline-block">
-    <span class="headline-eye">// Drop-Off Detection — Free Scan</span>
+    <span class="headline-eye">// Manager Communication Breakpoint — Free Scan</span>
     <h1 class="headline-main">
       Paste your content.<br>
       Find the <em>exact sentence</em><br>
@@ -862,8 +862,8 @@ body::after {
 
   <!-- Footer -->
   <div class="page-footer">
-    <span class="footer-id">DOD System · Drop-Off Detection · Build 4.0</span>
-    <a href="https://findthebreak.netlify.app/audit" class="footer-link" target="_blank">Full Audit Page ↗</a>
+    <span class="footer-id">RMOS Breakpoint Scan · Manager Communication Breakpoint · Build 4.0</span>
+    <a href="https://rmos-breakpoint-scan.netlify.app/audit" class="footer-link" target="_blank">Full Audit Page ↗</a>
   </div>
 
 </div><!-- /container -->
@@ -945,7 +945,7 @@ function splitSentences(text) {
 }
 
 /* ============================================================
-   BREAK POINT DETECTOR
+   RMOS BREAKPOINT DETECTOR
    Heuristic: finds the sentence most likely to cause drop-off.
    Biased toward middle-to-late sentences (typical structural failure zone).
    ============================================================ */
