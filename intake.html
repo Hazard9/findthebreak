@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breakpoint Submission Intake - DOD System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --bg:#050608;--surface:#0a0c0f;--panel:#0d1117;--border:#1a1f28;--line:#2a3545;
+    --text:#c8cdd6;--dim:#7b8798;--accent:#e8f0fe;--red:#ff3333;--green:#00e676;--blue:#4a90d9;
+    --mono:'Share Tech Mono',monospace;--display:'Bebas Neue',sans-serif;--body:'Rajdhani',sans-serif;
+  }
+  html{scroll-behavior:smooth;}
+  body{
+    min-height:100vh;color:var(--text);font-family:var(--body);overflow-x:hidden;
+    background-color:var(--bg);
+    background-image:linear-gradient(rgba(74,144,217,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(74,144,217,.045) 1px,transparent 1px);
+    background-size:48px 48px;
+  }
+  .hdr{border-bottom:1px solid var(--border);padding:11px 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,12,15,.96);position:sticky;top:0;z-index:10;}
+  .hdr-id,.hdr-status{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.12em;}
+  .hdr-title{font-family:var(--display);font-size:19px;letter-spacing:.2em;color:var(--accent);}
+  .hdr-status{color:var(--green);display:flex;align-items:center;gap:7px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);}
+  .wrap{max-width:820px;margin:0 auto;padding:0 20px 64px;}
+  .hero{padding:54px 0 34px;text-align:center;}
+  .eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.24em;color:var(--blue);margin-bottom:18px;}
+  h1{font-family:var(--display);font-size:clamp(48px,9vw,84px);letter-spacing:.06em;color:var(--accent);line-height:.94;}
+  h1 .red{color:var(--red);}
+  .sub{font-family:var(--mono);font-size:11px;color:var(--text);letter-spacing:.05em;line-height:1.9;max-width:620px;margin:22px auto 0;}
+  .terms{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:28px;}
+  @media(max-width:680px){.terms{grid-template-columns:1fr;}}
+  .term{background:rgba(10,12,15,.94);border:1px solid var(--border);padding:16px;}
+  .term-label{font-family:var(--mono);font-size:8px;letter-spacing:.2em;color:var(--blue);margin-bottom:7px;}
+  .term p{font-family:var(--mono);font-size:10px;line-height:1.75;letter-spacing:.04em;}
+  .panel{background:rgba(10,12,15,.97);border:1px solid var(--line);padding:26px;}
+  @media(max-width:560px){.panel{padding:20px 16px;}}
+  .panel-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:1px solid var(--border);padding-bottom:18px;margin-bottom:24px;}
+  .panel h2{font-family:var(--display);font-size:30px;letter-spacing:.12em;color:var(--accent);line-height:1;}
+  .panel-note{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.06em;line-height:1.7;max-width:300px;text-align:right;}
+  @media(max-width:560px){.panel-head{display:block}.panel-note{text-align:left;margin-top:8px;}}
+  .field{margin-bottom:20px;}
+  label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--text);margin-bottom:8px;}
+  .hint{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.04em;line-height:1.6;margin-top:6px;}
+  input,select,textarea{
+    width:100%;background:var(--panel);border:1px solid var(--line);outline:none;color:var(--accent);
+    font-family:var(--mono);font-size:12px;line-height:1.65;padding:12px 13px;letter-spacing:.03em;border-radius:0;
+  }
+  textarea{min-height:130px;resize:vertical;}
+  textarea.large{min-height:260px;}
+  input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 1px rgba(74,144,217,.16);}
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:24px;}
+  @media(max-width:560px){.actions{grid-template-columns:1fr;}}
+  button,.email-button{
+    width:100%;border:none;cursor:pointer;text-align:center;text-decoration:none;display:block;
+    font-family:var(--display);font-size:17px;letter-spacing:.16em;padding:13px 16px;transition:background .2s,border-color .2s;
+  }
+  .build{background:var(--red);color:#fff;}
+  .build:hover{background:#cc2222;}
+  .email-button{background:transparent;color:var(--accent);border:1px solid var(--line);}
+  .email-button:hover{border-color:var(--blue);color:var(--blue);}
+  .output{margin-top:26px;display:none;}
+  .output.show{display:block;}
+  .output-head{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--green);margin-bottom:8px;}
+  .output textarea{min-height:300px;color:var(--text);}
+  .next{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.05em;line-height:1.75;margin-top:14px;}
+  .footer{border-top:1px solid var(--border);padding:15px 20px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:.1em;background:rgba(10,12,15,.96);}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <span class="hdr-id">DOD SYSTEM / PAID INTAKE</span>
+  <span class="hdr-title">DOD SYSTEM</span>
+  <span class="hdr-status"><span class="dot"></span>ACTIVE</span>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="eyebrow">// BREAKPOINT AUDIT AND CORRECTION PROTOCOL</div>
+    <h1>SUBMIT YOUR<br><span class="red">CONTENT.</span></h1>
+    <p class="sub">Answer six questions. Build a clean submission. Send it by email so the work can begin.</p>
+  </section>
+
+  <section class="terms" aria-label="Turnaround and guarantee">
+    <div class="term">
+      <div class="term-label">BREAKPOINT AUDIT</div>
+      <p>Submissions before 6pm ET get same-day turnaround.</p>
+    </div>
+    <div class="term">
+      <div class="term-label">CORRECTION PROTOCOL</div>
+      <p>Protocol submissions are delivered within 48 hours.</p>
+    </div>
+    <div class="term">
+      <div class="term-label">THE GUARANTEE</div>
+      <p>If no breakpoint can be found, you do not pay.</p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>INTAKE FORM</h2>
+      <p class="panel-note">Your answers stay in this page until you choose to open your email app and send them.</p>
+    </div>
+
+    <form id="intakeForm">
+      <div class="field">
+        <label for="buyerName">1. YOUR NAME</label>
+        <input id="buyerName" name="buyerName" type="text" autocomplete="name" required>
+      </div>
+
+      <div class="field">
+        <label for="buyerEmail">2. YOUR EMAIL</label>
+        <input id="buyerEmail" name="buyerEmail" type="email" autocomplete="email" required>
+      </div>
+
+      <div class="field">
+        <label for="product">3. WHAT YOU PURCHASED</label>
+        <select id="product" name="product" required>
+          <option value="">Select your purchase</option>
+          <option value="Breakpoint Audit">Breakpoint Audit</option>
+          <option value="Breakpoint Correction Protocol">Breakpoint Correction Protocol</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="content">4. YOUR CONTENT</label>
+        <textarea class="large" id="content" name="content" required></textarea>
+        <p class="hint">Paste the full piece itself. Protocol scope is one piece up to about 1,500 words, or one full sales page section.</p>
+      </div>
+
+      <div class="field">
+        <label for="published">5. WHERE IT WILL BE PUBLISHED</label>
+        <textarea id="published" name="published" required></textarea>
+        <p class="hint">Name the platform or page where this content lives or will run.</p>
+      </div>
+
+      <div class="field">
+        <label for="offer">6. THE OFFER OR NEXT STEP IT LEADS TO</label>
+        <textarea id="offer" name="offer" required></textarea>
+        <p class="hint">Name the product, signup, call, click, or other action the reader is meant to take.</p>
+      </div>
+
+      <div class="actions">
+        <button class="build" type="button" id="buildButton">BUILD MY SUBMISSION</button>
+        <a class="email-button" id="emailButton" href="mailto:thearchitecture@matthewenglehart.com?subject=Breakpoint%20Submission">OPEN IN EMAIL APP</a>
+      </div>
+
+      <div class="output" id="submissionOutputWrap">
+        <div class="output-head">YOUR SUBMISSION IS READY</div>
+        <textarea id="submissionOutput" readonly aria-label="Your composed submission"></textarea>
+        <p class="next">Review it, then tap Open in Email App and hit send. The 48-hour Protocol clock starts when the submission arrives. Audit submissions before 6pm ET get same-day turnaround.</p>
+      </div>
+    </form>
+  </section>
+</main>
+
+<footer class="footer">
+  <span>DOD SYSTEM: DROP-OFF DETECTION</span>
+  <span>MATTENGLEHART.COM</span>
+  <span>BREAKPOINT INTAKE</span>
+</footer>
+
+<script>
+  const form = document.getElementById('intakeForm');
+  const buildButton = document.getElementById('buildButton');
+  const emailButton = document.getElementById('emailButton');
+  const outputWrap = document.getElementById('submissionOutputWrap');
+  const output = document.getElementById('submissionOutput');
+  const recipient = 'thearchitecture@matthewenglehart.com';
+
+  function fieldValue(id) {
+    return document.getElementById(id).value.trim();
+  }
+
+  function buildSubmission() {
+    if (!form.reportValidity()) return null;
+
+    const product = fieldValue('product');
+    const submission = [
+      'BREAKPOINT SUBMISSION',
+      '',
+      'Product: ' + product,
+      'Name: ' + fieldValue('buyerName'),
+      'Email: ' + fieldValue('buyerEmail'),
+      '',
+      'YOUR CONTENT',
+      fieldValue('content'),
+      '',
+      'WHERE IT WILL BE PUBLISHED',
+      fieldValue('published'),
+      '',
+      'THE OFFER OR NEXT STEP IT LEADS TO',
+      fieldValue('offer')
+    ].join('\n');
+
+    output.value = submission;
+    outputWrap.classList.add('show');
+
+    const subject = 'Breakpoint Submission: ' + product;
+    emailButton.href = 'mailto:' + recipient +
+      '?subject=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(submission);
+
+    return submission;
+  }
+
+  buildButton.addEventListener('click', function() {
+    const submission = buildSubmission();
+    if (submission) output.focus();
+  });
+
+  emailButton.addEventListener('click', function(event) {
+    const submission = buildSubmission();
+    if (!submission) {
+      event.preventDefault();
+      return;
+    }
+    emailButton.href = 'mailto:' + recipient +
+      '?subject=' + encodeURIComponent('Breakpoint Submission: ' + fieldValue('product')) +
+      '&body=' + encodeURIComponent(submission);
+  });
+</script>
+</body>
+</html>
